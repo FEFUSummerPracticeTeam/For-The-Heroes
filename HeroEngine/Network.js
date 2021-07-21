@@ -1,14 +1,9 @@
 // Часть движка, осуществляющая взаимодействие с сервером
 
-//Команды, согласно которым будет осуществляться парсинг команд в логе игры в БД
-const commands = {
-    Movement: 1,
-    Item: 2,
-    Action: 3,
-}
-
 //Список лобби, получать с помощью getLobbies()
 let lobbyList;
+//Сохраним ID этого игрока, чтобы не слать коллбеки на его ивенты
+let playerID;
 
 //Создаёт лобби
 //Принимает: Имя лобби, коллбек с объектом созданного лобби по окончании его создания
@@ -23,7 +18,7 @@ function createLobby(lobbyName, onLobbyCreated) {
     };
     let updates = {}
     updates['lobbies/' + lobbyID] = lobby;
-    database.ref().update(updates, (error) => {
+    database.ref().update(updates, () => {
         if (onLobbyCreated !== undefined) {
             onLobbyCreated(lobby);
         }
@@ -32,10 +27,10 @@ function createLobby(lobbyName, onLobbyCreated) {
 
 
 //Подключение к лобби
-//Принимает: пара {id;name} игрока, ID лобби, коллбек для присоединения новых людей, принимающий список игроков в лобби
+//Принимает: имя игрока, ID лобби, коллбек изменения кол-ва игроков в лобби, принимающий список игроков в лобби
 //Возвращает: ID этого игрока
 function joinLobby(playerName, lobbyID, newConnectionCallback) {
-    let playerID = database.ref('players/' + lobbyID).push().key;
+    playerID = database.ref('players/' + lobbyID).push().key;
     let update = {}
     update['players/' + lobbyID + '/' + playerID] = playerName;
     database.ref().update(update);
