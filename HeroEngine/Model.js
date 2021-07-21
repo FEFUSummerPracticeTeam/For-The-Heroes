@@ -158,17 +158,12 @@ class Item {
 //Принимает: void
 //Возвращает: void
 function parseItems() {
-    let request = new XMLHttpRequest();
-    let path = location.href.substring(0, location.href.lastIndexOf('/'));
-    request.open("GET", path + "/JSON/Items.json");
-    request.onload = ((res) => {
-        let result = JSON.parse(request.response);
+    parseJSON("JSON/Items.json",(result)=>{
         result.forEach((item) => {
-            Object.setPrototypeOf(item,Item.prototype);
+            Object.setPrototypeOf(item, Item.prototype);
             itemList.push(item);
         });
     });
-    request.send(null);
 }
 
 //Получение всех айтемов
