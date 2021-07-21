@@ -1,4 +1,8 @@
 // Часть движка, содержащая абстракции для всех логических элементов игры
+
+//массив айтемов, инициализируется при вызове parseItems(), получать через getItems()
+const itemList = []
+
 class Player {
     //начальные значения потом изменю
     constructor(name) {
@@ -19,6 +23,7 @@ class Player {
         this.fortune = 1;
         this.armour = 0; //броня
     }
+
     /*силы разграничены на "без снаряжения" и "со снаряжением" для того, чтоб, к примеру,
     можно было прокачать и использовать оружие для применения магической силы, но в то же время 
     иметь способность наносить значительный урон и от рукопашной физической*/
@@ -59,7 +64,7 @@ class Player {
         this.intelligence = this.defaultIntelligence;
     }
 
-    setPower(power) { 
+    setPower(power) {
         this.power = power;
         this.intelligence = this.defaultIntelligence; //устанавливает дефолтное значение
         this.armour = 0;
@@ -77,13 +82,13 @@ class Player {
     ---------------------------------------------------------------- */
 
     //функция получает процент, на который нужно увеличить текущее здоровье
-    getHealth(percent) { 
-        this.health *= (1 + percent/100);
+    getHealth(percent) {
+        this.health *= (1 + percent / 100);
     }
 
     //функция получает процент, на который нужно увеличить текущую ману
-    getWisdom(percent) { 
-        this.wisdom *= (1 + percent/100);
+    getWisdom(percent) {
+        this.wisdom *= (1 + percent / 100);
     }
 
 
@@ -93,7 +98,7 @@ class Player {
 
     //функция получает силу противника и, в зависимости от наличия брони, уменьшает здоровье игрока
     getDamage(damage) {
-        this.health -= damage * (100 - this.armour)/100;
+        this.health -= damage * (100 - this.armour) / 100;
     }
 
 
@@ -123,4 +128,52 @@ class Player {
     //     this.health = this.maxHealth;
     // }
 
+}
+
+//Абстракция айтемов игры
+class Item {
+    ID;
+    name;
+    type;
+    value;
+    sprite;
+
+    //При его использовании мы делаем что-то в соответствии с его типом
+    useItem(){
+        switch (this.type) {
+            case ItemTypes.HPHealing:
+                //TODO
+                break;
+            case ItemTypes.ManaHealing:
+                //TODO
+                break;
+            case ItemTypes.Weapon:
+                //TODO
+                break;
+        }
+    }
+}
+
+//Асинхронный парсинг JSON файла айтемов (функция должна выполняться где-то на старте)
+//Принимает: void
+//Возвращает: void
+function parseItems() {
+    let request = new XMLHttpRequest();
+    let path = location.href.substring(0, location.href.lastIndexOf('/'));
+    request.open("GET", path + "/JSON/Items.json");
+    request.onload = ((res) => {
+        let result = JSON.parse(request.response);
+        result.forEach((item) => {
+            Object.setPrototypeOf(item,Item.prototype);
+            itemList.push(item);
+        });
+    });
+    request.send(null);
+}
+
+//Получение всех айтемов
+//Принимает: void
+//Возвращает: массив объектов типа Item - все айтемы игры
+function getItems() {
+    return itemList;
 }

@@ -1,0 +1,23 @@
+[
+  {
+    "ID": 1,
+    "name": "Меч",
+    "type": "Weapon",
+    "value": "50",
+    "sprite": ""
+  },
+  {
+    "ID": 2,
+    "name": "Леч. зелье",
+    "type": "HPHeal",
+    "value": "30",
+    "sprite": ""
+  },
+  {
+    "ID": 3,
+    "name": "Зелье маны",
+    "type": "ManaHeal",
+    "value": "30",
+    "sprite": ""
+  }
+]
