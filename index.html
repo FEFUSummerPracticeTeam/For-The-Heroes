@@ -9,11 +9,13 @@
 
 <!-- The core Firebase JS SDK is always required and must be listed first -->
 <script src="https://www.gstatic.com/firebasejs/8.7.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.7.1/firebase-database.js"></script>
 <script>
     // Your web app's Firebase configuration
-    var firebaseConfig = {
+    const firebaseConfig = {
         apiKey: "AIzaSyANCjfSBhAWdLHVlZzy2UxbjK6YkK_xgxE",
         authDomain: "fortheheroes-dcd06.firebaseapp.com",
+        databaseURL: "fortheheroes-dcd06-default-rtdb.europe-west1.firebasedatabase.app",
         projectId: "fortheheroes-dcd06",
         storageBucket: "fortheheroes-dcd06.appspot.com",
         messagingSenderId: "412663129020",
@@ -21,6 +23,7 @@
     };
     // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
 </script>
 
 <!-- Hero Engine definitions -->
