@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>For The Heroes</title>
+</head>
+<body>
+
+
+<!-- The core Firebase JS SDK is always required and must be listed first -->
+<script src="https://www.gstatic.com/firebasejs/8.7.1/firebase-app.js"></script>
+<script>
+    // Your web app's Firebase configuration
+    var firebaseConfig = {
+        apiKey: "AIzaSyANCjfSBhAWdLHVlZzy2UxbjK6YkK_xgxE",
+        authDomain: "fortheheroes-dcd06.firebaseapp.com",
+        projectId: "fortheheroes-dcd06",
+        storageBucket: "fortheheroes-dcd06.appspot.com",
+        messagingSenderId: "412663129020",
+        appId: "1:412663129020:web:d36363a6300b3bc3c541b9"
+    };
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+</script>
+
+<!-- Hero Engine definitions -->
+<script src="HeroEngine/GUI.js"></script>
+<script src="HeroEngine/Model.js"></script>
+<script src="HeroEngine/Network.js"></script>
+<!-- Game definition -->
+<script src="game.js"></script>
+
+</body>
+</html>
