@@ -1,9 +1,9 @@
 // Часть движка, содержащая абстракции для всех логических элементов игры
 
-//массив айтемов, инициализируется при вызове parseItems(), получать через getItems()
-const itemList = []
-//массив клеток, инициализируется при вызове parseCells(), получать через getCells()
-const cellList = []
+//Map типов айтемов, ключ - ID, инициализируется при вызове parseItems(), получать через getItems()
+const itemList = new Map()
+//Map типов клеток, ключ - ID, инициализируется при вызове parseCells(), получать через getCells()
+const cellList = new Map()
 
 class Player {
     //начальные значения потом изменю
@@ -176,17 +176,17 @@ class Item {
 //Принимает: void
 //Возвращает: void
 function parseItems() {
-    parseJSON("JSON/Items.json",(result)=>{
+    parseJSON("JSON/Items.json", (result) => {
         result.forEach((item) => {
             Object.setPrototypeOf(item, Item.prototype);
-            itemList.push(item);
+            itemList[item.ID] = item;
         });
     });
 }
 
 //Получение всех айтемов
 //Принимает: void
-//Возвращает: массив объектов типа Item - все айтемы игры
+//Возвращает: Map объектов типа Item - все айтемы игры
 function getItems() {
     return itemList;
 }
@@ -233,17 +233,17 @@ class Cell {
 //Принимает: void
 //Возвращает: void
 function parseCells() {
-    parseJSON("JSON/Cells.json",(result)=>{
+    parseJSON("JSON/Cells.json", (result) => {
         result.forEach((cell) => {
             Object.setPrototypeOf(cell, Cell.prototype);
-            cellList.push(cell);
+            cellList[cell.ID] = cell;
         });
     });
 }
 
 //Получение всех клеток
 //Принимает: void
-//Возвращает: массив объектов типа Cell - все клетки игры
+//Возвращает: Map объектов типа Cell - все клетки игры
 function getCells() {
     return cellList;
 }
