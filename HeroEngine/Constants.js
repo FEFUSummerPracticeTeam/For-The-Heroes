@@ -12,7 +12,10 @@ const ItemTypes = {
 
 //(Network.js) Команды, согласно которым будет осуществляться парсинг команд в логе игры в БД
 const commands = {
+    //Пакет данных содержит cmdID,x;y
     Movement: 1,
+    //Пакет данных содержит cmdID,itemID
     Item: 2,
+    //Пакет данных содержит cmdID,ActionID?, data?
     Action: 3,
 }
