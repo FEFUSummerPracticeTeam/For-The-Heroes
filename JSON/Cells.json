@@ -1,0 +1,60 @@
+[
+    {
+      "ID": 1,
+      "name": "Базовая",
+      "type": "NoEffect",
+      "value": "",
+      "sprite": ""
+    },
+    {
+      "ID": 2,
+      "name": "Замедляющая",
+      "type": "Slowdown",
+      "value": "50",
+      "sprite": "" 
+    },
+    {
+      "ID": 3,
+      "name": "Ускоряющая",
+      "type": "Acceleration",
+      "value": "50",
+      "sprite": ""
+    },
+    {
+      "ID": 4,
+      "name": "Наносящая урон",
+      "type": "Damage",
+      "value": "30",
+      "sprite": ""
+    },
+    {
+      "ID": 5,
+      "name": "Исцеляющая",
+      "type": "HPHeal",
+      "value": "20",
+      "sprite": ""
+    },
+    {
+      "ID": 6,
+      "name": "Восстанавливающая ману",
+      "type": "ManaHeal",
+      "value": "15",
+      "sprite": "" 
+    },
+    {
+      "ID": 7,
+      "name": "Клетка с монстром",
+      "type": "Monster",
+      "value": "",
+      "sprite": ""
+    },
+    {
+      "ID": 8,
+      "name": "Секретная",
+      "type": "Secret",
+      "value": "",
+      "sprite": ""
+    }
+  ]
+  
+  

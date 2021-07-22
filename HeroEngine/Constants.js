@@ -10,6 +10,17 @@ const ItemTypes = {
     ManaHealing: "ManaHeal",
 }
 
+const CellTypes = {
+    NoEffect: "NoEffect",
+    Slowdown: "Slowdown",
+    Acceleration: "Acceleration",
+    Damage: "Damage",
+    HPHealing: "HPHeal",
+    ManaHealing: "ManaHeal",
+    Monster: "Monster",
+    Secret: "Secret",
+}
+
 //(Network.js) Команды, согласно которым будет осуществляться парсинг команд в логе игры в БД
 const commands = {
     //Пакет данных содержит cmdID,x;y

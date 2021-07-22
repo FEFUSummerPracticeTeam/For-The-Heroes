@@ -2,6 +2,8 @@
 
 //массив айтемов, инициализируется при вызове parseItems(), получать через getItems()
 const itemList = []
+//массив клеток, инициализируется при вызове parseCells(), получать через getCells()
+const cellList = []
 
 class Player {
     //начальные значения потом изменю
@@ -93,7 +95,7 @@ class Player {
 
 
     /* ----------------------------------------------------------------
-                            действия игрока
+                               действия
     ---------------------------------------------------------------- */
 
     isDead() {
@@ -104,6 +106,11 @@ class Player {
     getDamage(damage) {
         this.health -= damage * (100 - this.armour) / 100;
         this.isDead();
+    }
+
+    //функция ускорения или замедления (percent < 0) игрока
+    getSpeed(percent) {
+        this.speed *= (1 + percent / 100);
     }
 
 
@@ -182,4 +189,61 @@ function parseItems() {
 //Возвращает: массив объектов типа Item - все айтемы игры
 function getItems() {
     return itemList;
+}
+
+
+//Класс, описывающий клетки поля
+class Cell {
+    ID;
+    name;
+    type;
+    value;
+    sprite;
+
+    getEffect(player) {
+        switch (this.type) {
+            case CellTypes.NoEffect:
+                break;
+            case CellTypes.Slowdown:
+                player.getSpeed(-this.value);
+                break;
+            case CellTypes.Acceleration:
+                player.getSpeed(this.value);
+                break;
+            case CellTypes.Damage:
+                player.getDamage(this.value);
+                break;
+            case CellTypes.HPHealing:
+                player.getHealth(this.value);
+                break;
+            case CellTypes.ManaHealing:
+                player.getMana(this.value);
+                break;
+            case CellTypes.Monster:
+                // TODO
+                break;
+            case CellTypes.Secret: //рандомом выбирается любая клетка, кроме базовой ну и секретной
+                // TODO  
+                break;
+        }
+    }
+}
+
+//Асинхронный парсинг JSON файла клеток 
+//Принимает: void
+//Возвращает: void
+function parseCells() {
+    parseJSON("JSON/Cells.json",(result)=>{
+        result.forEach((cell) => {
+            Object.setPrototypeOf(cell, Cell.prototype);
+            cellList.push(cell);
+        });
+    });
+}
+
+//Получение всех клеток
+//Принимает: void
+//Возвращает: массив объектов типа Cell - все клетки игры
+function getCells() {
+    return cellList;
 }
