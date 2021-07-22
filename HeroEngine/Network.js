@@ -10,7 +10,7 @@ let lobbyID;
 let lobbyPlayers;
 
 //Создание лобби
-//Принимает: Имя лобби, коллбек, принимающий объект созданного лобби по окончании его создания (id;name;creationDate)
+//Принимает: Имя лобби, коллбек, принимающий объект созданного лобби по окончании его создания {id;name;creationDate}
 //Возвращает: void
 function createLobby(lobbyName, onLobbyCreatedListener) {
     lobbyID = database.ref().child('lobbies').push().key;
@@ -30,29 +30,31 @@ function createLobby(lobbyName, onLobbyCreatedListener) {
 }
 
 //Подключение к лобби
-//Принимает: имя игрока, ID лобби, коллбек изменения кол-ва игроков в лобби, принимающий список игроков в лобби(id:name)
+//Принимает: имя игрока, ID лобби, коллбек изменения кол-ва игроков в лобби, принимающий массив игроков в лобби{id;name}
 //Возвращает: ID этого игрока
 function joinLobby(playerName, lobbyID, onNewConnectionListener) {
     playerID = database.ref('players/' + lobbyID).push().key;
     let update = {}
-    update['players/' + lobbyID + '/' + playerID] = playerName;
+    update['players/' + lobbyID + '/' + playerID] = {name: playerName, id: playerID};
     database.ref().update(update);
     database.ref('players/' + lobbyID).on('value', (snapshot) => {
-        lobbyPlayers = snapshot.val();
+        let response = snapshot.val();
+        lobbyPlayers = response === null ? [] : Object.values(response);
         if (onNewConnectionListener !== undefined) {
-            onNewConnectionListener(lobbyPlayers);
+            onNewConnectionListener(getLobbyPlayers());
         }
     });
     return playerID;
 }
 
 //Обновление списка лобби с сервера
-//Принимает: коллбек, которому аргументом будет передан массив пар {name;id} - список лобби
+//Принимает: коллбек, которому аргументом будет передан массив пар {name;id;creationDate} - список лобби
 //Возвращает: void
 function refreshLobbies(onRefreshDoneListener) {
     let lobbyRef = database.ref('lobbies/');
     lobbyRef.once('value', (snapshot) => {
-        lobbyList = snapshot.val() === null ? [] : snapshot.val();
+        let response = snapshot.val();
+        lobbyList = response === null ? [] : Object.values(response);
         if (onRefreshDoneListener !== undefined) onRefreshDoneListener(getLobbies());
     }, (error) => {
         console.log(error)
@@ -107,9 +109,4 @@ function makeEvent(data) {
     let eventRef = database.ref('events/' + lobbyID + '/' + playerID).push();
     data.eventKey = eventRef.key;
     eventRef.set(data);
-}
-
-//Приватная функция
-function write(path, obj, onWriteDone) {
-    database.ref(path).set(obj, onWriteDone === undefined ? undefined : onWriteDone);
 }
