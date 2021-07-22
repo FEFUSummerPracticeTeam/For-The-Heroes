@@ -12,8 +12,8 @@ class Player {
         this.experience = 0;
         this.maxHealth = 100;
         this.health = 100;
-        this.maxWisdom = 50; //мудрость, количество маны
-        this.wisdom = 50;
+        this.maxMana = 50; //мудрость, количество маны
+        this.mana = 50;
         this.defaultPower = 10; //физическая сила (без снаряжения)
         this.power = 10;
         this.defaultIntelligence = 5; //магическая сила (без снаряжения)
@@ -40,8 +40,8 @@ class Player {
             this.points++;
             this.maxHealth += 20;
             this.health = this.maxHealth;
-            this.maxWisdom += 5;
-            this.wisdom = this.maxWisdom;
+            this.maxMana += 5;
+            this.mana = this.maxMana;
         }
     }
 
@@ -87,8 +87,8 @@ class Player {
     }
 
     //функция получает процент, на который нужно увеличить текущую ману
-    getWisdom(percent) {
-        this.wisdom *= (1 + percent / 100);
+    getMana(percent) {
+        this.mana *= (1 + percent / 100);
     }
 
 
@@ -96,9 +96,14 @@ class Player {
                             действия игрока
     ---------------------------------------------------------------- */
 
+    isDead() {
+        this.health > 0 ? false : true;
+    }
+
     //функция получает силу противника и, в зависимости от наличия брони, уменьшает здоровье игрока
     getDamage(damage) {
         this.health -= damage * (100 - this.armour) / 100;
+        this.isDead();
     }
 
 
@@ -139,16 +144,22 @@ class Item {
     sprite;
 
     //При его использовании мы делаем что-то в соответствии с его типом
-    useItem(){
+    useItem(player) {
         switch (this.type) {
-            case ItemTypes.HPHealing:
-                //TODO
-                break;
-            case ItemTypes.ManaHealing:
-                //TODO
+            case ItemTypes.Armour:
+                player.setArmour(this.value);
                 break;
             case ItemTypes.Weapon:
-                //TODO
+                player.setPower(this.value);
+                break;
+            case ItemTypes.Magic:
+                player.setIntelligence(this.value);
+                break;
+            case ItemTypes.HPHealing:
+                player.getHealth(this.value);
+                break;
+            case ItemTypes.ManaHealing:
+                player.getMana(this.value);
                 break;
         }
     }

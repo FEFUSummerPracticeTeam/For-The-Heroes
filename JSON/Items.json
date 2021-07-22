@@ -1,20 +1,34 @@
 [
   {
     "ID": 1,
+    "name": "Щит",
+    "type": "Armour",
+    "value": "20",
+    "sprite": ""
+  },
+  {
+    "ID": 2,
     "name": "Меч",
     "type": "Weapon",
     "value": "50",
     "sprite": ""
   },
   {
-    "ID": 2,
+    "ID": 3,
+    "name": "Дер. волшебная палочка",
+    "type": "Magic",
+    "value": "25",
+    "sprite": ""
+  },
+  {
+    "ID": 4,
     "name": "Леч. зелье",
     "type": "HPHeal",
     "value": "30",
     "sprite": ""
   },
   {
-    "ID": 3,
+    "ID": 5,
     "name": "Зелье маны",
     "type": "ManaHeal",
     "value": "30",
