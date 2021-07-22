@@ -2,27 +2,26 @@
 
 //Список лобби, получение: getLobbies()
 let lobbyList;
-//Сохраним ID этого игрока, чтобы не слать коллбеки на его ивенты, получение: getPlayerID()
+//ID этого игрока, чтобы не слать коллбеки на его ивенты, получение: getPlayerID()
 let playerID;
-//Также сохраним ID лобби, чтобы не передавать его каждый раз, получение: getLobbyID()
+//ID лобби, чтобы не передавать его каждый раз, получение: getLobbyID()
 let lobbyID;
-//Список игроков в лобби нам нужен, чтобы повесить на каждого соотв. коллбек, получение: getLobbyPlayers()
+//Список игроков в лобби, чтобы повесить на каждого соотв. коллбек, получение: getLobbyPlayers()
 let lobbyPlayers;
 
 //Создание лобби
 //Принимает: Имя лобби, коллбек, принимающий объект созданного лобби по окончании его создания {id;name;creationDate}
 //Возвращает: void
 function createLobby(lobbyName, onLobbyCreatedListener) {
-    lobbyID = database.ref().child('lobbies').push().key;
+    let lobbyRef = database.ref().child('lobbies').push();
+    lobbyID = lobbyRef.key;
 
     let lobby = {
         id: lobbyID,
         name: lobbyName,
-        creationDate: Date.now().toString(), //TODO: очистка лобби суточной и более давности
+        creationDate: getTimestamp(),
     };
-    let updates = {}
-    updates['lobbies/' + lobbyID] = lobby;
-    database.ref().update(updates, () => {
+    lobbyRef.set(lobby, () => {
         if (onLobbyCreatedListener !== undefined) {
             onLobbyCreatedListener(lobby);
         }
@@ -31,12 +30,11 @@ function createLobby(lobbyName, onLobbyCreatedListener) {
 
 //Подключение к лобби
 //Принимает: имя игрока, ID лобби, коллбек изменения кол-ва игроков в лобби, принимающий массив игроков в лобби{id;name}
-//Возвращает: ID этого игрока
+//Возвращает: string - ID этого игрока
 function joinLobby(playerName, lobbyID, onNewConnectionListener) {
-    playerID = database.ref('players/' + lobbyID).push().key;
-    let update = {}
-    update['players/' + lobbyID + '/' + playerID] = {name: playerName, id: playerID};
-    database.ref().update(update);
+    let playerRef = database.ref('players/' + lobbyID).push();
+    playerID = playerRef.key;
+    playerRef.set({name: playerName, id: playerID});
     database.ref('players/' + lobbyID).on('value', (snapshot) => {
         let response = snapshot.val();
         lobbyPlayers = response === null ? [] : Object.values(response);
@@ -48,7 +46,7 @@ function joinLobby(playerName, lobbyID, onNewConnectionListener) {
 }
 
 //Обновление списка лобби с сервера
-//Принимает: коллбек, которому аргументом будет передан массив пар {name;id;creationDate} - список лобби
+//Принимает: коллбек, которому аргументом будет передан Array{name;id;creationDate} - список лобби
 //Возвращает: void
 function refreshLobbies(onRefreshDoneListener) {
     let lobbyRef = database.ref('lobbies/');
@@ -61,23 +59,51 @@ function refreshLobbies(onRefreshDoneListener) {
     });
 }
 
+//Очистка старых лобби (старее чем сутки) (запускать только после хотя бы одного refreshLobbies())
+//Принимает: void
+//Возвращает: void
+function cleanOldLobbies() {
+    let needsWriting = false;
+    let timestamp = getTimestamp();
+    let varRef = database.ref('vars/lastCleanTime');
+    varRef.once('value',(snapshot) => {
+        let result = snapshot.val();
+        if (result != null) {
+            const oneDay = 24 * 60 * 60 * 1000;
+            if ((timestamp - result.lastCleanTime) > oneDay) {
+                needsWriting = true;
+                for (const lobby of lobbyList) {
+                    if ((timestamp - lobby.creationDate) > oneDay) {
+                        database.ref('lobbies/' + lobby.id).remove();
+                    }
+                }
+            }
+        } else {
+            needsWriting = true;
+        }
+        if (needsWriting) {
+            varRef.set({lastCleanTime: timestamp});
+        }
+    });
+}
+
 //Получение списка лобби
 //Принимает: void
-//Возвращает: массив пар {name,id} - список лобби
+//Возвращает: Array{name,id} - список лобби
 function getLobbies() {
     return lobbyList;
 }
 
 //Получение ID текущего лобби
 //Принимает: void
-//Возвращает: строку - ID текущего лобби
+//Возвращает: string - ID текущего лобби
 function getLobbyID() {
     return lobbyID;
 }
 
 //Получение ID текущего игрока
 //Принимает: void
-//Возвращает: строку - ID текущего игрока
+//Возвращает: string - ID текущего игрока
 function getPlayerID() {
     return playerID;
 }
@@ -109,4 +135,11 @@ function makeEvent(data) {
     let eventRef = database.ref('events/' + lobbyID + '/' + playerID).push();
     data.eventKey = eventRef.key;
     eventRef.set(data);
+}
+
+//Получает точную метку времени с сервера, чтобы не опираться на клиента
+//Принимает: void
+//Возвращает: string
+function getTimestamp() {
+    return firebase.database.ServerValue.TIMESTAMP;
 }
