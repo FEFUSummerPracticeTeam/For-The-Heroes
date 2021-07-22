@@ -1,25 +1,25 @@
 // Часть движка, осуществляющая отрисовку игры в канвасе
-var CustJS = function (_canvas) {
+var CustJS = function (_box) {
     'use strict'
     var CustJS = this;
 
     //GLOBALS//
-    var canvas = null
-        , size = null
+    var  size = null
+        ,canvas_offset = null
         , running = false
         , active_scene = null
-        , context = null;
+        ,layer = null;
 
     //INIT//
     var _INIT = function () {
-        if (typeof _canvas !== 'object') canvas = document.getElementById(_canvas);
-        else canvas = _canvas;
-        context = canvas.getContext('2d');
-        size = vector2(canvas.width, canvas.height);
+        if (typeof _box !== 'object') _box = document.getElementById(_box); // создаем коробку в которую будем помещать много canvas и таким создавать слои
 
-        var pos = canvas.getBoundingClientRect();
-        canvas.offset = vector2(pos.left, pos.right);
-        // context.fillText("Hi me",50,50);
+        var box = _box.getBoundingClientRect();
+        canvas_offset = vector2(box.left, box.top); // смещение объекта
+        size = vector2(box.width, box.height);
+
+        CustJS.create_layer('main',0,true);
+        CustJS.select_layer("main");
     };
 
 
@@ -27,6 +27,47 @@ var CustJS = function (_canvas) {
     var is_int= function (num){// здесь будет проверка на число
         return num
     }
+
+
+    //LAYERS//
+    var layers = {};               // здесь будут лежать все слои
+    var clear_layers = [];          // здесь будут лежать слои с авто очисткой
+    class Layer{                    // класс слоя в котором создается canvas в установленной коробке
+        constructor(index) {        // индекс для глубины слоя
+            var cnv = document.createElement("canvas");
+            cnv.style.cssText = 'position: absolute; left: '+canvas_offset.x+'px;top: '+canvas_offset.y+'px;';
+            cnv.width = size.x;
+            cnv.height = size.y;
+            cnv.style.zIndex = 100+index;
+            document.body.appendChild(cnv);
+
+            this.canvas = cnv;
+            this.context = cnv.getContext('2d');
+        }
+
+        clear(){     // метод очистки слоя (выполняется в _update)
+            this.context.clearRect(0,0,size.x,size.y);
+        }
+
+        draw_object(p){ // метод рисования на слое
+            this.context.fillStyle = "red";
+            this.context.fillRect(p.x,p.y,p.width,p.height);
+            /*context.drawImage(this.sprite, this.x, this.y, this.width, this.height);*/
+           /* this.cont.fillText("Hi me",50,50);*/
+        }
+    }
+
+    CustJS.create_layer = function (id, index,is_auto_clear ) {   // метод для создания слоя с id  для массива, индексом для глубины слоя и булевая переменная на авто очистку
+        if(layers[id])return
+        layers[id] = new Layer(index);
+        if(is_auto_clear) clear_layers.push(layers[id]);
+    };
+    CustJS.select_layer = function (id) {  // метод выбора слоя для рисования
+        if(!layers[id])return
+        layer = layers[id];
+        return layer;
+    };
+
 
     //VECTORS//
     class Vector2 {  // класс сделанный для перемещения объектов с помощью векторной системы (из вне только через функцию ниже)
@@ -52,11 +93,12 @@ var CustJS = function (_canvas) {
     //ENGINE//
     var _update = function (){  // функция для обновления интерфейса (не для использования из вне)
         active_scene.update();
+        for(let i in clear_layers)
+            clear_layers[i].clear();
         active_scene.draw_objects();
         active_scene.draw();
 
-        if(running)
-            requestAnimationFrame(_update);
+        if(running) requestAnimationFrame(_update);
     }
 
 
@@ -121,14 +163,19 @@ var CustJS = function (_canvas) {
     class object {
         constructor(p) {
             this.position = p.position;
-            this.width = p.width;
-            this.height = p.height;
+            this.size = p.size;
             this.sprite = new Image();
             this.sprite.src = p.sprite;
         }
 
         draw() {
-            context.drawImage(this.sprite, this.x, this.y, this.width, this.height);
+            layer.draw_object({
+                x:this.position.x,
+                y:this.position.y,
+                width: this.size.x,
+                height: this.size.y,
+                sprite: this.sprite
+            })
         }
         move(p){
             this.position.plus(p);// тк это вектор
