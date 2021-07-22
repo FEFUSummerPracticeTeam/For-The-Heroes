@@ -9,8 +9,17 @@ let lobbyID;
 //Список игроков в лобби, чтобы повесить на каждого соотв. коллбек, получение: getLobbyPlayers()
 let lobbyPlayers;
 
+//Инициализация network-стека движка
+//Принимает: (опц.) коллбек на окончание инициализации
+//Возвращает: void
+function networkInit() {
+    refreshLobbies();
+    cleanOldLobbies();
+}
+
+
 //Создание лобби
-//Принимает: Имя лобби, коллбек, принимающий объект созданного лобби по окончании его создания {id;name;creationDate}
+//Принимает: Имя лобби,(опц.) коллбек, принимающий объект созданного лобби по окончании его создания {id;name;creationDate}
 //Возвращает: void
 function createLobby(lobbyName, onLobbyCreatedListener) {
     let lobbyRef = database.ref().child('lobbies').push();
@@ -29,7 +38,7 @@ function createLobby(lobbyName, onLobbyCreatedListener) {
 }
 
 //Подключение к лобби
-//Принимает: имя игрока, ID лобби, коллбек изменения кол-ва игроков в лобби, принимающий массив игроков в лобби{id;name}
+//Принимает: имя игрока, ID лобби, (опц) коллбек изменения кол-ва игроков в лобби, принимающий массив игроков в лобби{id;name}
 //Возвращает: string - ID этого игрока
 function joinLobby(playerName, lobbyID, onNewConnectionListener) {
     let playerRef = database.ref('players/' + lobbyID).push();
@@ -46,7 +55,7 @@ function joinLobby(playerName, lobbyID, onNewConnectionListener) {
 }
 
 //Обновление списка лобби с сервера
-//Принимает: коллбек, которому аргументом будет передан Array{name;id;creationDate} - список лобби
+//Принимает: (опц.) коллбек, которому аргументом будет передан Array{name;id;creationDate} - список лобби
 //Возвращает: void
 function refreshLobbies(onRefreshDoneListener) {
     let lobbyRef = database.ref('lobbies/');
@@ -66,11 +75,11 @@ function cleanOldLobbies() {
     let needsWriting = false;
     let timestamp = getTimestamp();
     let varRef = database.ref('vars/lastCleanTime');
-    varRef.once('value',(snapshot) => {
+    varRef.once('value', (snapshot) => {
         let result = snapshot.val();
         if (result != null) {
             const oneDay = 24 * 60 * 60 * 1000;
-            if ((timestamp - result.lastCleanTime) > oneDay) {
+            if ((timestamp - result) > oneDay) {
                 needsWriting = true;
                 for (const lobby of lobbyList) {
                     if ((timestamp - lobby.creationDate) > oneDay) {
@@ -82,7 +91,7 @@ function cleanOldLobbies() {
             needsWriting = true;
         }
         if (needsWriting) {
-            varRef.set({lastCleanTime: timestamp});
+            varRef.set(timestamp);
         }
     });
 }
@@ -135,6 +144,22 @@ function makeEvent(data) {
     let eventRef = database.ref('events/' + lobbyID + '/' + playerID).push();
     data.eventKey = eventRef.key;
     eventRef.set(data);
+}
+
+//Чистит свои прошлые ивенты с сервера, должно выполняться по окончании хода
+//Принимает: void
+//Возвращает: void
+function cleanCachedEvents() {
+    database.ref('events/' + lobbyID + '/' + playerID).remove();
+}
+
+//Прикрепляет коллбек на случай, когда игрок попадёт в оффлайн
+//Принимает: void
+//Возвращает: void
+function bindOfflineAction() {
+    database.ref('events/' + lobbyID + '/' + playerID).onDisconnect().push().set({
+        cmdID: commands.Disconnected,
+    });
 }
 
 //Получает точную метку времени с сервера, чтобы не опираться на клиента

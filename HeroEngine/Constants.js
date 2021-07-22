@@ -29,4 +29,6 @@ const commands = {
     Item: 2,
     //Пакет данных содержит cmdID,ActionID?, data?
     Action: 3,
+    //Пакет данных содержит cmdID
+    Disconnected: 4,
 }
