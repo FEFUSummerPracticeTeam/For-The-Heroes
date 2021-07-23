@@ -1,7 +1,14 @@
 // Контроллер, связывающий движок в игру
 // пока я тут пишу тесты
-var ctx = new CustJS('my_game');
-ctx.create_layer('background',-1,false);
+var ctx = new CustJS('my_game',{
+    'back':{
+        "auto_clear" : false
+    },
+    'main':{
+        "auto_clear" : true
+    }
+
+});
 
 ctx.create_scene('my_scene',function (){
     var r = ctx.create_object(this,{
@@ -9,13 +16,13 @@ ctx.create_scene('my_scene',function (){
         size: ctx.vector2(100,100),
         width: 100,
         height: 100,
-        sprite:""
+        sprite:"",
+        layer: "main"
     });
 
     this.init = function (){
         console.log('inited');
-        ctx.select_layer('background').draw_object({x:10,y:10,width: 500,height: 300})
-        ctx.select_layer("main")
+        ctx.get_layer('back').draw_object({x:10,y:10,width: 500,height: 300})
     };
     this.update = function (){
         r.move(ctx.vector2(1,0));

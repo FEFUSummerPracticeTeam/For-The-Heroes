@@ -1,7 +1,11 @@
 // Часть движка, осуществляющая отрисовку игры в канвасе
-var CustJS = function (_box) {
+var CustJS = function (_box,_layers) { // _box - поле в котором будут созадаваться canvases, _layers - слои которые передаются при создании движка(теперь их можно парсить)
     'use strict'
     var CustJS = this;
+
+
+
+
 
     //GLOBALS//
     var  size = null
@@ -18,8 +22,16 @@ var CustJS = function (_box) {
         canvas_offset = vector2(box.left, box.top); // смещение объекта
         size = vector2(box.width, box.height);
 
-        CustJS.create_layer('main',0,true);
-        CustJS.select_layer("main");
+        if(typeof _layers ==='object'){
+            var i,j=0;
+            for(i in _layers){
+                CustJS.create_layer(i,++j,!!_layers[i].auto_clear);
+            }
+        }
+        else {
+            CustJS.create_layer('main', 0, true);
+            CustJS.select_layer("main")
+        }
     };
 
 
@@ -27,6 +39,12 @@ var CustJS = function (_box) {
     var is_int= function (num){// здесь будет проверка на число
         return num
     }
+
+
+
+
+
+
 
 
     //LAYERS//
@@ -67,6 +85,17 @@ var CustJS = function (_box) {
         layer = layers[id];
         return layer;
     };
+    CustJS.get_layer = function (id) {
+        if(!layers[id])return
+        return layers[id];
+    }
+
+
+
+
+
+
+
 
 
     //VECTORS//
@@ -84,10 +113,12 @@ var CustJS = function (_box) {
 
     }
 
-
     var vector2 = this.vector2 = function (x, y) {  // для работы с вектором
         return new Vector2(x, y);
     }
+
+
+
 
 
     //ENGINE//
@@ -108,6 +139,9 @@ var CustJS = function (_box) {
         if(running)
             _update();
     };
+
+
+
 
 
 
@@ -146,6 +180,7 @@ var CustJS = function (_box) {
     }
 
     this.create_scene = function (name, Construct) { // функция для создания сцены из вне
+        if(scenes[name]) return;
         scenes[name] = new Scene(new Construct);
     }
     this.set_scene = function (name) {              // функция для смены сцены (передается имя сцены, по которому извлекается из массива)
@@ -159,6 +194,11 @@ var CustJS = function (_box) {
         return true;
     }
 
+
+
+
+
+
     //OBJECTS//
     class object {
         constructor(p) {
@@ -166,10 +206,11 @@ var CustJS = function (_box) {
             this.size = p.size;
             this.sprite = new Image();
             this.sprite.src = p.sprite;
+            this.layer = p.layer || "main" ;
         }
 
         draw() {
-            layer.draw_object({
+            layers[this.layer].draw_object({
                 x:this.position.x,
                 y:this.position.y,
                 width: this.size.x,
