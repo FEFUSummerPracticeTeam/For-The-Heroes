@@ -23,7 +23,7 @@ const CellTypes = {
 
 //(Network.js) Команды, согласно которым будет осуществляться парсинг команд в логе игры в БД
 const commands = {
-    //Пакет данных содержит cmdID,x;y
+    //Пакет данных содержит cmdID,x,y
     Movement: 1,
     //Пакет данных содержит cmdID,itemID
     Item: 2,
@@ -31,4 +31,6 @@ const commands = {
     Action: 3,
     //Пакет данных содержит cmdID
     Disconnected: 4,
+    //Пакет данных с полем, содержит cmdID, field - специальным образом сериализованный массив поля
+    Field: 5,
 }

@@ -96,9 +96,19 @@ function cleanOldLobbies() {
     });
 }
 
+
+//Функция определения, кто является первым игроком, чтобы понять, кому придётся генерировать поле
+//Принимает: void
+//Возвращает: bool - является ли этот игрок первым
+function shouldGenerateField() {
+    return getLobbyPlayers().sort((p1, p2) => {
+        return p1.id.localeCompare(p2.id);
+    })[0].localeCompare(playerID) === 0;
+}
+
 //Получение списка лобби
 //Принимает: void
-//Возвращает: Array{name,id} - список лобби
+//Возвращает: Array{name,id,creationDate} - список лобби
 function getLobbies() {
     return lobbyList;
 }
@@ -119,7 +129,7 @@ function getPlayerID() {
 
 //Получение списка игроков в лобби
 //Принимает: void
-//Возвращает: список игроков в лобби
+//Возвращает: Array{name,id} - список игроков в лобби
 function getLobbyPlayers() {
     return lobbyPlayers;
 }
