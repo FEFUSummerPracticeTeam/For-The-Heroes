@@ -14,21 +14,17 @@ class Player {
         this.experience = 0;
         this.maxHealth = 100;
         this.health = 100;
-        this.maxMana = 50; //мудрость, количество маны
+        this.maxMana = 50; 
         this.mana = 50;
         this.defaultPower = 10; //физическая сила (без снаряжения)
         this.power = 10;
-        this.defaultIntelligence = 5; //магическая сила (без снаряжения)
-        this.intelligence = 5; //магическая сила
+        this.armour = 0; //броня
+        this.intelligence = 0; //магическая сила (процент, на который увеличивается урон от заклинаний)
         this.agility = 1; //ловкость
         this.speed = 1;
         this.fortune = 1;
-        this.armour = 0; //броня
+        this.items = []; //массив айтемов игрока, хранит ID
     }
-
-    /*силы разграничены на "без снаряжения" и "со снаряжением" для того, чтоб, к примеру,
-    можно было прокачать и использовать оружие для применения магической силы, но в то же время 
-    иметь способность наносить значительный урон и от рукопашной физической*/
 
 
     /* ----------------------------------------------------------------
@@ -63,18 +59,10 @@ class Player {
     setArmour(armour) {
         this.armour = armour;
         this.power = this.defaultPower;
-        this.intelligence = this.defaultIntelligence;
     }
 
     setPower(power) {
         this.power = power;
-        this.intelligence = this.defaultIntelligence; //устанавливает дефолтное значение
-        this.armour = 0;
-    }
-
-    setIntelligence(intelligence) {
-        this.intelligence = intelligence;
-        this.power = this.defaultPower; //устанавливает дефолтное значение
         this.armour = 0;
     }
 
@@ -86,11 +74,13 @@ class Player {
     //функция получает процент, на который нужно увеличить текущее здоровье
     getHealth(percent) {
         this.health *= (1 + percent / 100);
+        if (this.health > this.maxHealth) this.health = this.maxHealth;
     }
 
     //функция получает процент, на который нужно увеличить текущую ману
     getMana(percent) {
         this.mana *= (1 + percent / 100);
+        if (this.mana > this.maxMana) this.mana = this.maxMana;
     }
 
 
@@ -118,6 +108,14 @@ class Player {
                               заклинания
     ---------------------------------------------------------------- */
 
+    isEnoughMana(mana) {
+        if (this.mana - mana > 0) {
+            this.mana -= mana;
+            return true;
+        }
+        return false; //выдать ошибку "не хватает маны"
+    }
+
     regeneration() {
         this.getHealth(10);
     }
@@ -139,6 +137,10 @@ class Player {
     //     this.maxHealth += 40;
     //     this.health = this.maxHealth;
     // }
+    //
+    // incrementIntelligence() {
+    //     this.intelligence += 20;
+    // }
 
 }
 
@@ -159,16 +161,26 @@ class Item {
             case ItemTypes.Weapon:
                 player.setPower(this.value);
                 break;
-            case ItemTypes.Magic:
-                player.setIntelligence(this.value);
-                break;
             case ItemTypes.HPHealing:
                 player.getHealth(this.value);
                 break;
             case ItemTypes.ManaHealing:
                 player.getMana(this.value);
                 break;
+            case ItemTypes.Magic:
+                if (!player.isEnoughMana(this.value)) break;
+                switch (this.name) {
+                    case "Регенерация":
+                        player.regeneration();
+                        break;
+                    case "Невидимость":
+                        //TODO
+                        break;
+                    ////////////////////////////////////////////////////////////////
+                }
+                break;
         }
+        player.items.push(this.ID);
     }
 }
 

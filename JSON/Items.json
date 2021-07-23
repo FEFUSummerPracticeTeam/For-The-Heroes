@@ -15,23 +15,30 @@
   },
   {
     "ID": 3,
-    "name": "Дер. волшебная палочка",
-    "type": "Magic",
-    "value": "25",
-    "sprite": ""
-  },
-  {
-    "ID": 4,
     "name": "Леч. зелье",
     "type": "HPHeal",
     "value": "30",
     "sprite": ""
   },
   {
-    "ID": 5,
+    "ID": 4,
     "name": "Зелье маны",
     "type": "ManaHeal",
     "value": "30",
+    "sprite": ""
+  },
+  {
+    "ID": 5,
+    "name": "Регенерация",
+    "type": "Magic",
+    "value": "20",
+    "sprite": ""
+  },
+  {
+    "ID": 6,
+    "name": "Невидимость",
+    "type": "Magic",
+    "value": "25",
     "sprite": ""
   }
 ]
