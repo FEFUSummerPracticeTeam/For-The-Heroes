@@ -73,7 +73,7 @@ var CustJS = function (_box,_layers) { // _box - поле в котором бу
 
         draw_object(p){ // метод рисования на слое
             this.context.fillStyle = "red";
-            var dp = vp(vector2(p.x,p.y));
+            var dp = vp(p.x,p.y);
             this.context.fillRect(dp.x,dp.y,p.width,p.height);
             /*context.drawImage(this.sprite, this.x, this.y, this.width, this.height);*/
            /* this.cont.fillText("Hi me",50,50);*/
@@ -176,6 +176,7 @@ var CustJS = function (_box,_layers) { // _box - поле в котором бу
 
         update() {
             this.scene.update();
+            for(let i in this.scene.nodes) this.scene.nodes[i].update();
         }
 
         exit() {
@@ -212,7 +213,8 @@ var CustJS = function (_box,_layers) { // _box - поле в котором бу
 
     //OBJECTS//
     class object {
-        constructor(p) {
+        constructor(p,construct) {
+            this.obj = construct;
             this.position = p.position;
             this.size = p.size;
             this.sprite = new Image();
@@ -232,15 +234,18 @@ var CustJS = function (_box,_layers) { // _box - поле в котором бу
         move(p){
             this.position.plus(p);// тк это вектор
         }
+        update(){   // функция которая берет функцию написанную как параметр при создании данного объекта
+            this.obj.update();
+        }
     }
 
-    var create_object = function (p) {
-        return new object(p);
+    var create_object = function (p,Constructor) {
+        return new object( p,new Constructor());
     }
-    this.create_object = function (scene, params) { // функция для создания объектов на сцене для использования из вне
+    this.create_object = function (scene, params,update) { // функция для создания объектов на сцене для использования из вне
         if (typeof scene.nodes === "undefined")
             var nds = scene.nodes = [];
-        let obj = create_object(params)
+        let obj = create_object(params,update)
         nds.push(obj)
         return obj;
     }
@@ -256,8 +261,8 @@ var CustJS = function (_box,_layers) { // _box - поле в котором бу
             this.position.plus(v)
         }
     };
-    var vp = function (p) {          // расчет смещения объектов  относительно камеры
-        return p.minus(view.position);
+    var vp = function (x,y) {          // расчет смещения объектов  относительно камеры
+        return vector2(x,y).minus(view.position);
     };
     
     
