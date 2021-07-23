@@ -14,6 +14,10 @@ var CustJS = function (_box,_layers) { // _box - поле в котором бу
         , active_scene = null
         ,layer = null;
 
+
+
+
+
     //INIT//
     var _INIT = function () {
         if (typeof _box !== 'object') _box = document.getElementById(_box); // создаем коробку в которую будем помещать много canvas и таким создавать слои
@@ -69,7 +73,8 @@ var CustJS = function (_box,_layers) { // _box - поле в котором бу
 
         draw_object(p){ // метод рисования на слое
             this.context.fillStyle = "red";
-            this.context.fillRect(p.x,p.y,p.width,p.height);
+            var dp = vp(vector2(p.x,p.y));
+            this.context.fillRect(dp.x,dp.y,p.width,p.height);
             /*context.drawImage(this.sprite, this.x, this.y, this.width, this.height);*/
            /* this.cont.fillText("Hi me",50,50);*/
         }
@@ -106,9 +111,15 @@ var CustJS = function (_box,_layers) { // _box - поле в котором бу
         this.y = y;
     }
 
-    plus(p){
-        this.x+=p.x;
-        this.y+=p.y;
+    plus(v){
+        this.x+=v.x;
+        this.y+=v.y;
+        return this;
+    }
+    minus(v){
+        this.x-=v.x;
+        this.y-=v.y;
+        return this;
     }
 
     }
@@ -235,6 +246,29 @@ var CustJS = function (_box,_layers) { // _box - поле в котором бу
     }
 
 
+
+
+        //VIEWPORT//
+    var view = CustJS.view = new function () {  // работа с камерой
+        this.position= vector2(0,0);
+
+        this.move= function (v) { // двигаем камеру
+            this.position.plus(v)
+        }
+    };
+    var vp = function (p) {          // расчет смещения объектов  относительно камеры
+        return p.minus(view.position);
+    };
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     _INIT();
     window.CustJSGlobal = CustJS;
 

@@ -22,10 +22,11 @@ ctx.create_scene('my_scene',function (){
 
     this.init = function (){
         console.log('inited');
-        ctx.get_layer('back').draw_object({x:10,y:10,width: 500,height: 300})
+       // ctx.get_layer('back').draw_object({x:10,y:10,width: 500,height: 300})
     };
     this.update = function (){
-        r.move(ctx.vector2(1,0));
+        //r.move(ctx.vector2(1,0));
+        ctx.view.move(ctx.vector2(1,0));
     };
     this.draw = function (){
     };
