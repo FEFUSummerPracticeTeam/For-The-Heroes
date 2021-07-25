@@ -9,6 +9,15 @@ const decorMap = new Map();
 //2D Array - массив всего поля игры, получение через getField()
 const gameMap = [];
 
+//Функция, инициализирующая игру, должна вызываться на старте игровой комнаты
+//Принимает: void
+//Возвращает: void
+function gameInitialize() {
+    parseItems();
+    parseCells();
+    parseDecorations();
+}
+
 class Player {
     //начальные значения потом изменю
     constructor(name) {
@@ -188,18 +197,6 @@ class Item {
     }
 }
 
-//Асинхронный парсинг JSON файла айтемов (функция должна выполняться где-то на старте)
-//Принимает: void
-//Возвращает: void
-function parseItems() {
-    parseJSON("JSON/Items.json", (result) => {
-        result.forEach((item) => {
-            Object.setPrototypeOf(item, Item.prototype);
-            itemMap[item.ID] = item;
-        });
-    });
-}
-
 //Получение всех айтемов
 //Принимает: void
 //Возвращает: Map объектов типа Item - все айтемы игры
@@ -216,7 +213,42 @@ class Cell {
     }
 }
 
-//Генерация карты перлиновского шума
+//Генерация карты игрового поля
+//Принимает: Vector2D offset
+//Возвращает: void
+function generateGameMap(offset) {
+    //Карта высот
+    let heightWaves = []
+    let heightMap = generateNoise(mapWidth, mapHeight, mapNoiseScale, heightWaves, offset);
+    //Карта влажности
+    let moistureWaves = []
+    let moistureMap = generateNoise(mapWidth, mapHeight, mapNoiseScale, moistureWaves, offset);
+    //Карта тепла
+    let heatWaves = []
+    let heatMap = generateNoise(mapWidth, mapHeight, mapNoiseScale, heatWaves, offset);
+
+    for (let x = 0; x < mapWidth; x++) {
+        for (let y = 0; y < mapHeight; y++) {
+            gameMap[x][y] = new Cell(x, y, getBiomeID(heightMap[x][y], moistureMap[x][y], heatMap[x][y]));
+        }
+    }
+}
+
+//Получение всех типов клеток
+//Принимает: void
+//Возвращает: Map объектов типа CellType - все типы клеток игры
+function getCellTypes() {
+    return cellTypeMap;
+}
+
+//Получение игрового поля
+//Принимает: void
+//Возвращает: 2D Array Cell - массив клеток игры
+function getGameMap() {
+    return gameMap;
+}
+
+//(private) Генерация карты перлиновского шума
 //Принимает: int width, int height, float scale, Array(Wave) Waves, Vector2 offset
 //Возвращает: 2D float Array
 function generateNoise(width, height, scale, waves, offset) {
@@ -237,35 +269,19 @@ function generateNoise(width, height, scale, waves, offset) {
     return noiseMap;
 }
 
-//Класс волн для карты шумов
+//(private) Класс волн для карты шумов
 class Wave {
     seed;
     frequency;
     amplitude;
 }
 
-
-//Генерация карты игрового поля
-function generateGameMap(offset) {
-    //Карта высот
-    let heightWaves = []
-    let heightMap = generateNoise(mapWidth, mapHeight, mapNoiseScale, heightWaves, offset);
-    //Карта влажности
-    let moistureWaves = []
-    let moistureMap = generateNoise(mapWidth, mapHeight, mapNoiseScale, moistureWaves, offset);
-    //Карта тепла
-    let heatWaves = []
-    let heatMap = generateNoise(mapWidth, mapHeight, mapNoiseScale, heatWaves, offset);
-
-    for (let x = 0; x < mapWidth; x++) {
-        for (let y = 0; y < mapHeight; y++) {
-            gameMap[x][y] = new Cell(x, y, getBiomeID(heightMap[x][y], moistureMap[x][y], heatMap[x][y]));
-        }
-    }
+//(private) Получение ID биома в зависимости от выбранной точки на карте шумов
+function getBiomeID(heightMap, moistureMap, heatMap) {
+    //TODO
 }
 
-
-//Асинхронный парсинг JSON файла типов клеток
+//(private) Асинхронный парсинг JSON файла типов клеток
 //Принимает: void
 //Возвращает: void
 function parseCells() {
@@ -276,8 +292,8 @@ function parseCells() {
     });
 }
 
-//Парсинг JSON файла декораций
-function parseDecorations(){
+//(private) Парсинг JSON файла декораций
+function parseDecorations() {
     parseJSON("JSON/Decorations.json", (result) => {
         result.forEach((decoration) => {
             decorMap[decoration.ID] = decoration;
@@ -285,16 +301,14 @@ function parseDecorations(){
     });
 }
 
-//Получение всех типов клеток
+//(private) Асинхронный парсинг JSON файла айтемов
 //Принимает: void
-//Возвращает: Map объектов типа CellType - все типы клеток игры
-function getCellTypes() {
-    return cellTypeMap;
-}
-
-//Получение игрового поля
-//Принимает: void
-//Возвращает: 2D Array Cell - массив клеток игры
-function getGameMap() {
-    return gameMap;
+//Возвращает: void
+function parseItems() {
+    parseJSON("JSON/Items.json", (result) => {
+        result.forEach((item) => {
+            Object.setPrototypeOf(item, Item.prototype);
+            itemMap[item.ID] = item;
+        });
+    });
 }
