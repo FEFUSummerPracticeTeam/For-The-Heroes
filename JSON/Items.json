@@ -40,5 +40,23 @@
     "type": "Magic",
     "value": "25",
     "sprite": ""
+  },
+  {
+    "ID": 7,
+    "name": "Камень",
+    "type": "Decoration",
+    "sprite": "stone.png"
+  },
+  {
+    "ID": 8,
+    "name": "Куст",
+    "type": "Decoration",
+    "sprite": "bush.png"
+  },
+  {
+    "ID": 9,
+    "name": "Цветочки",
+    "type": "Decoration",
+    "sprite": "flowers.png"
   }
 ]

@@ -1,60 +1,75 @@
 [
-    {
-      "ID": 1,
-      "name": "Базовая",
-      "type": "NoEffect",
-      "value": "",
-      "sprite": ""
-    },
-    {
-      "ID": 2,
-      "name": "Замедляющая",
-      "type": "Slowdown",
-      "value": "50",
-      "sprite": "" 
-    },
-    {
-      "ID": 3,
-      "name": "Ускоряющая",
-      "type": "Acceleration",
-      "value": "50",
-      "sprite": ""
-    },
-    {
-      "ID": 4,
-      "name": "Наносящая урон",
-      "type": "Damage",
-      "value": "30",
-      "sprite": ""
-    },
-    {
-      "ID": 5,
-      "name": "Исцеляющая",
-      "type": "HPHeal",
-      "value": "20",
-      "sprite": ""
-    },
-    {
-      "ID": 6,
-      "name": "Восстанавливающая ману",
-      "type": "ManaHeal",
-      "value": "15",
-      "sprite": "" 
-    },
-    {
-      "ID": 7,
-      "name": "Клетка с монстром",
-      "type": "Monster",
-      "value": "",
-      "sprite": ""
-    },
-    {
-      "ID": 8,
-      "name": "Секретная",
-      "type": "Secret",
-      "value": "",
-      "sprite": ""
-    }
-  ]
+  {
+    "ID": 1,
+    "type": "NoEffect",
+    "decor": [
+      7,
+      8,
+      9
+    ],
+    "value": [
+      0.2,
+      0.5,
+      0.3
+    ],
+    "sprite": "grass.png"
+  },
+  {
+    "ID": 2,
+    "type": "NoEffect",
+    "decor": [],
+    "value": [
+      0.2,
+      0,
+      0
+    ],
+    "sprite": "snow.png"
+  },
+  {
+    "ID": 3,
+    "type": "NoEffect",
+    "decor": [],
+    "value": [
+      0.2,
+      0.6,
+      0.2
+    ],
+    "sprite": "aki_grass.png"
+  },
+  {
+    "ID": 4,
+    "type": "NoEffect",
+    "decor": [
+      0,
+      0,
+      0.5
+    ],
+    "sprite": "sand.png"
+  },
+  {
+    "ID": 5,
+    "type": "HPHeal",
+    "value": "20",
+    "sprite": ""
+  },
+  {
+    "ID": 6,
+    "type": "ManaHeal",
+    "value": "15",
+    "sprite": ""
+  },
+  {
+    "ID": 7,
+    "type": "Monster",
+    "value": "",
+    "sprite": ""
+  },
+  {
+    "ID": 8,
+    "type": "Secret",
+    "value": "",
+    "sprite": ""
+  }
+]
   
   

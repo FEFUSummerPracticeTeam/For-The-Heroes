@@ -14,7 +14,7 @@ class Player {
         this.experience = 0;
         this.maxHealth = 100;
         this.health = 100;
-        this.maxMana = 50; 
+        this.maxMana = 50;
         this.mana = 50;
         this.defaultPower = 10; //физическая сила (без снаряжения)
         this.power = 10;
@@ -204,8 +204,8 @@ function getItems() {
 }
 
 
-//Класс, описывающий клетки поля
-class Cell {
+//Класс, описывающий типы клеток поля
+class CellType {
     ID;
     name;
     type;
@@ -241,13 +241,41 @@ class Cell {
     }
 }
 
-//Асинхронный парсинг JSON файла клеток 
+//Генерация карты перлиновского шума
+//Принимает: int width, int height, float scale, Array(Wave) Waves, Vector2 offset
+//Возвращает: 2D float Array
+function generateNoise(width, height, scale, waves, offset) {
+    noise.seed(Math.random());
+    let noiseMap = [];
+    for (let x = 0; x < width; x++) {
+        for (let y = 0; y < height; y++) {
+            let sampleX = x * scale + offset.x;
+            let sampleY = y * scale + offset.y;
+            let norm = 0.0;
+            for (const wave of waves) {
+                noiseMap[x][y] += wave.amplitude * noise.perlin2(sampleX * wave.frequency + wave.seed, sampleY * wave.frequency + wave.seed);
+                norm += wave.amplitude;
+            }
+            noiseMap[x][y] /= norm;
+        }
+    }
+    return noiseMap;
+}
+
+class Wave {
+    seed;
+    frequency;
+    amplitude;
+}
+
+
+//Асинхронный парсинг JSON файла типов клеток
 //Принимает: void
 //Возвращает: void
 function parseCells() {
     parseJSON("JSON/Cells.json", (result) => {
         result.forEach((cell) => {
-            Object.setPrototypeOf(cell, Cell.prototype);
+            Object.setPrototypeOf(cell, CellType.prototype);
             cellList[cell.ID] = cell;
         });
     });
@@ -255,7 +283,7 @@ function parseCells() {
 
 //Получение всех клеток
 //Принимает: void
-//Возвращает: Map объектов типа Cell - все клетки игры
+//Возвращает: Map объектов типа CellType - все клетки игры
 function getCells() {
     return cellList;
 }
