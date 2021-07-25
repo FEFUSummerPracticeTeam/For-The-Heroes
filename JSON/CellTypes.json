@@ -1,6 +1,6 @@
 [
   {
-    "ID": 1,
+    "ID": 0,
     "decor": [
       7,
       8,
@@ -8,38 +8,38 @@
     ],
     "value": [
       0.2,
-      0.5,
-      0.3
+      0,
+      0.5
     ],
     "sprite": "grass.png"
+  },
+  {
+    "ID": 1,
+    "decor": [],
+    "value": [
+      0.2,
+      0.4,
+      0.4
+    ],
+    "sprite": "snow.png"
   },
   {
     "ID": 2,
     "decor": [],
     "value": [
       0.2,
-      0,
-      0
+      0.5,
+      0.3
     ],
-    "sprite": "snow.png"
+    "sprite": "aki_grass.png"
   },
   {
     "ID": 3,
     "decor": [],
     "value": [
-      0.2,
-      0.6,
-      0.2
-    ],
-    "sprite": "aki_grass.png"
-  },
-  {
-    "ID": 4,
-    "decor": [],
-    "value": [
       0,
       0,
-      0.5
+      0
     ],
     "sprite": "sand.png"
   }

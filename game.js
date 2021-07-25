@@ -42,6 +42,7 @@ ctx.create_scene('my_scene', function () {
 
     this.init = function () {
         console.log('inited');
+        gameInitialize();
         // ctx.get_layer('back').draw_object({x:10,y:10,width: 500,height: 300})
     };
     this.update = function () {

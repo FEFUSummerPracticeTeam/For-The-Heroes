@@ -1,13 +1,14 @@
 // Часть движка, содержащая абстракции для всех логических элементов игры
 
-//Map типов айтемов, ключ - ID, инициализируется при вызове parseItems(), получать через getItems()
-const itemMap = new Map();
-//Map типов клеток, ключ - ID, инициализируется при вызове parseCells(), получать через getCells()
-const cellTypeMap = new Map();
-//Map типов декораций, ключ - ID, инициализацируется при вызове parseDecorations(), private
-const decorMap = new Map();
-//2D Array - массив всего поля игры, получение через getField()
+//Array типов айтемов, ключ - ID, инициализируется при вызове parseItems(), получать через getItems()
+const itemTypeList = [];
+//Array типов клеток, ключ - ID, инициализируется при вызове parseCells(), получать через getCells()
+const cellTypeList = [];
+//Array типов декораций, ключ - ID, инициализацируется при вызове parseDecorations(), private
+const decorTypeList = [];
+//2D Array - массив всего поля игры, получение через getGameMap()
 const gameMap = [];
+let simplex;
 
 //Функция, инициализирующая игру, должна вызываться на старте игровой комнаты
 //Принимает: void
@@ -201,7 +202,7 @@ class Item {
 //Принимает: void
 //Возвращает: Map объектов типа Item - все айтемы игры
 function getItems() {
-    return itemMap;
+    return itemTypeList;
 }
 
 //Класс клеток карты
@@ -209,27 +210,21 @@ class Cell {
     constructor(x, y, ID) {
         this.x = x;
         this.y = y;
-        this.ID = ID;
+        this.ID = ID; //ID типа клетки
     }
 }
 
 //Генерация карты игрового поля
-//Принимает: Vector2D offset
+//Принимает: void
 //Возвращает: void
-function generateGameMap(offset) {
-    //Карта высот
-    let heightWaves = []
-    let heightMap = generateNoise(mapWidth, mapHeight, mapNoiseScale, heightWaves, offset);
-    //Карта влажности
-    let moistureWaves = []
-    let moistureMap = generateNoise(mapWidth, mapHeight, mapNoiseScale, moistureWaves, offset);
-    //Карта тепла
-    let heatWaves = []
-    let heatMap = generateNoise(mapWidth, mapHeight, mapNoiseScale, heatWaves, offset);
+function generateGameMap() {
+    let heightMap = generateNoise(mapWidth, mapHeight, mapNoiseScale, heightWaves, sampleOffset);
+    let moistureMap = generateNoise(mapWidth, mapHeight, mapNoiseScale, moistureWaves, sampleOffset);
+    let heatMap = generateNoise(mapWidth, mapHeight, mapNoiseScale, heatWaves, sampleOffset);
 
     for (let x = 0; x < mapWidth; x++) {
         for (let y = 0; y < mapHeight; y++) {
-            gameMap[x][y] = new Cell(x, y, getBiomeID(heightMap[x][y], moistureMap[x][y], heatMap[x][y]));
+            gameMap[[x, y]] = new Cell(x, y, getBiomeID(heightMap[[x, y]], moistureMap[[x, y]], heatMap[[x, y]]));
         }
     }
 }
@@ -238,7 +233,7 @@ function generateGameMap(offset) {
 //Принимает: void
 //Возвращает: Map объектов типа CellType - все типы клеток игры
 function getCellTypes() {
-    return cellTypeMap;
+    return cellTypeList;
 }
 
 //Получение игрового поля
@@ -252,42 +247,50 @@ function getGameMap() {
 //Принимает: int width, int height, float scale, Array(Wave) Waves, Vector2 offset
 //Возвращает: 2D float Array
 function generateNoise(width, height, scale, waves, offset) {
-    noise.seed(Math.random());
     let noiseMap = [];
     for (let x = 0; x < width; x++) {
         for (let y = 0; y < height; y++) {
+            noiseMap[[x, y]] = 0;
             let sampleX = x * scale + offset.x;
             let sampleY = y * scale + offset.y;
             let norm = 0.0;
             for (const wave of waves) {
-                noiseMap[x][y] += wave.amplitude * noise.perlin2(sampleX * wave.frequency + wave.seed, sampleY * wave.frequency + wave.seed);
+                noiseMap[[x, y]] += wave.amplitude * noise(sampleX * wave.frequency + wave.seed, sampleY * wave.frequency + wave.seed);
                 norm += wave.amplitude;
             }
-            noiseMap[x][y] /= norm;
+            noiseMap[[x, y]] /= norm;
         }
     }
     return noiseMap;
 }
 
-//(private) Класс волн для карты шумов
-class Wave {
-    seed;
-    frequency;
-    amplitude;
-}
-
 //(private) Получение ID биома в зависимости от выбранной точки на карте шумов
-function getBiomeID(heightMap, moistureMap, heatMap) {
-    //TODO
+function getBiomeID(height, moisture, heat) {
+    let bestDiff;
+    let bestDiffID;
+    for (const cellType of cellTypeList.values()) {
+        console.log(height);
+        if (height >= cellType.value[0] && moisture >= cellType.value[1] && heat >= cellType.value[2]) {
+            let diff = (height - cellType.value[0]) + (moisture - cellType.value[1]) + (heat - cellType.value[2]);
+            if(bestDiffID === undefined){
+                bestDiffID = cellType.ID;
+                bestDiff = diff;
+            }else{
+                if (diff < bestDiff) {
+                    bestDiff = diff;
+                    bestDiffID = cellType.ID;
+                }
+            }
+        }
+    }
+    return bestDiffID === undefined ? cellTypeList[0].ID : bestDiffID;
 }
 
 //(private) Асинхронный парсинг JSON файла типов клеток
-//Принимает: void
-//Возвращает: void
 function parseCells() {
     parseJSON("JSON/CellTypes.json", (result) => {
         result.forEach((cellType) => {
-            cellTypeMap[cellType.ID] = cellType;
+            cellTypeList[cellType.ID] = cellType;
         });
     });
 }
@@ -296,19 +299,17 @@ function parseCells() {
 function parseDecorations() {
     parseJSON("JSON/Decorations.json", (result) => {
         result.forEach((decoration) => {
-            decorMap[decoration.ID] = decoration;
+            decorTypeList[decoration.ID] = decoration;
         });
     });
 }
 
 //(private) Асинхронный парсинг JSON файла айтемов
-//Принимает: void
-//Возвращает: void
 function parseItems() {
     parseJSON("JSON/Items.json", (result) => {
         result.forEach((item) => {
             Object.setPrototypeOf(item, Item.prototype);
-            itemMap[item.ID] = item;
+            itemTypeList[item.ID] = item;
         });
     });
 }
