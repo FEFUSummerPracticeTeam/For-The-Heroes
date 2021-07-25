@@ -1,7 +1,6 @@
 [
   {
     "ID": 1,
-    "type": "NoEffect",
     "decor": [
       7,
       8,
@@ -16,7 +15,6 @@
   },
   {
     "ID": 2,
-    "type": "NoEffect",
     "decor": [],
     "value": [
       0.2,
@@ -27,7 +25,6 @@
   },
   {
     "ID": 3,
-    "type": "NoEffect",
     "decor": [],
     "value": [
       0.2,
@@ -38,37 +35,13 @@
   },
   {
     "ID": 4,
-    "type": "NoEffect",
-    "decor": [
+    "decor": [],
+    "value": [
       0,
       0,
       0.5
     ],
     "sprite": "sand.png"
-  },
-  {
-    "ID": 5,
-    "type": "HPHeal",
-    "value": "20",
-    "sprite": ""
-  },
-  {
-    "ID": 6,
-    "type": "ManaHeal",
-    "value": "15",
-    "sprite": ""
-  },
-  {
-    "ID": 7,
-    "type": "Monster",
-    "value": "",
-    "sprite": ""
-  },
-  {
-    "ID": 8,
-    "type": "Secret",
-    "value": "",
-    "sprite": ""
   }
 ]
   

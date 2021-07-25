@@ -1,0 +1,20 @@
+[
+  {
+    "ID": 1,
+    "name": "Камень",
+    "type": "Decoration",
+    "sprite": "stone.png"
+  },
+  {
+    "ID": 2,
+    "name": "Куст",
+    "type": "Decoration",
+    "sprite": "bush.png"
+  },
+  {
+    "ID": 3,
+    "name": "Цветочки",
+    "type": "Decoration",
+    "sprite": "flowers.png"
+  }
+]

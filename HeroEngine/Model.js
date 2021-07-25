@@ -1,9 +1,13 @@
 // Часть движка, содержащая абстракции для всех логических элементов игры
 
 //Map типов айтемов, ключ - ID, инициализируется при вызове parseItems(), получать через getItems()
-const itemList = new Map()
+const itemMap = new Map();
 //Map типов клеток, ключ - ID, инициализируется при вызове parseCells(), получать через getCells()
-const cellList = new Map()
+const cellTypeMap = new Map();
+//Map типов декораций, ключ - ID, инициализацируется при вызове parseDecorations(), private
+const decorMap = new Map();
+//2D Array - массив всего поля игры, получение через getField()
+const gameMap = [];
 
 class Player {
     //начальные значения потом изменю
@@ -191,7 +195,7 @@ function parseItems() {
     parseJSON("JSON/Items.json", (result) => {
         result.forEach((item) => {
             Object.setPrototypeOf(item, Item.prototype);
-            itemList[item.ID] = item;
+            itemMap[item.ID] = item;
         });
     });
 }
@@ -200,44 +204,15 @@ function parseItems() {
 //Принимает: void
 //Возвращает: Map объектов типа Item - все айтемы игры
 function getItems() {
-    return itemList;
+    return itemMap;
 }
 
-
-//Класс, описывающий типы клеток поля
-class CellType {
-    ID;
-    name;
-    type;
-    value;
-    sprite;
-
-    getEffect(player) {
-        switch (this.type) {
-            case CellTypes.NoEffect:
-                break;
-            case CellTypes.Slowdown:
-                player.getSpeed(-this.value);
-                break;
-            case CellTypes.Acceleration:
-                player.getSpeed(this.value);
-                break;
-            case CellTypes.Damage:
-                player.getDamage(this.value);
-                break;
-            case CellTypes.HPHealing:
-                player.getHealth(this.value);
-                break;
-            case CellTypes.ManaHealing:
-                player.getMana(this.value);
-                break;
-            case CellTypes.Monster:
-                // TODO
-                break;
-            case CellTypes.Secret: //рандомом выбирается любая клетка, кроме базовой ну и секретной
-                // TODO  
-                break;
-        }
+//Класс клеток карты
+class Cell {
+    constructor(x, y, ID) {
+        this.x = x;
+        this.y = y;
+        this.ID = ID;
     }
 }
 
@@ -262,6 +237,7 @@ function generateNoise(width, height, scale, waves, offset) {
     return noiseMap;
 }
 
+//Класс волн для карты шумов
 class Wave {
     seed;
     frequency;
@@ -269,21 +245,56 @@ class Wave {
 }
 
 
+//Генерация карты игрового поля
+function generateGameMap(offset) {
+    //Карта высот
+    let heightWaves = []
+    let heightMap = generateNoise(mapWidth, mapHeight, mapNoiseScale, heightWaves, offset);
+    //Карта влажности
+    let moistureWaves = []
+    let moistureMap = generateNoise(mapWidth, mapHeight, mapNoiseScale, moistureWaves, offset);
+    //Карта тепла
+    let heatWaves = []
+    let heatMap = generateNoise(mapWidth, mapHeight, mapNoiseScale, heatWaves, offset);
+
+    for (let x = 0; x < mapWidth; x++) {
+        for (let y = 0; y < mapHeight; y++) {
+            gameMap[x][y] = new Cell(x, y, getBiomeID(heightMap[x][y], moistureMap[x][y], heatMap[x][y]));
+        }
+    }
+}
+
+
 //Асинхронный парсинг JSON файла типов клеток
 //Принимает: void
 //Возвращает: void
 function parseCells() {
-    parseJSON("JSON/Cells.json", (result) => {
-        result.forEach((cell) => {
-            Object.setPrototypeOf(cell, CellType.prototype);
-            cellList[cell.ID] = cell;
+    parseJSON("JSON/CellTypes.json", (result) => {
+        result.forEach((cellType) => {
+            cellTypeMap[cellType.ID] = cellType;
         });
     });
 }
 
-//Получение всех клеток
+//Парсинг JSON файла декораций
+function parseDecorations(){
+    parseJSON("JSON/Decorations.json", (result) => {
+        result.forEach((decoration) => {
+            decorMap[decoration.ID] = decoration;
+        });
+    });
+}
+
+//Получение всех типов клеток
 //Принимает: void
-//Возвращает: Map объектов типа CellType - все клетки игры
-function getCells() {
-    return cellList;
+//Возвращает: Map объектов типа CellType - все типы клеток игры
+function getCellTypes() {
+    return cellTypeMap;
+}
+
+//Получение игрового поля
+//Принимает: void
+//Возвращает: 2D Array Cell - массив клеток игры
+function getGameMap() {
+    return gameMap;
 }
