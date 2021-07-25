@@ -237,6 +237,12 @@ var CustJS = function (_box,_layers) { // _box - поле в котором бу
         update(){   // функция которая берет функцию написанную как параметр при создании данного объекта
             this.obj.update();
         }
+        isCollision(obj){
+            return !(this.position.x+this.size.x < obj.position.x ||
+                     this.position.y+this.size.y < obj.position.y ||
+                     this.position.x > obj.position.x+obj.size.x ||
+                     this.position.y > obj.position.y + obj.size.y);
+        }
     }
 
     var create_object = function (p,Constructor) {
@@ -245,6 +251,7 @@ var CustJS = function (_box,_layers) { // _box - поле в котором бу
     this.create_object = function (scene, params,update) { // функция для создания объектов на сцене для использования из вне
         if (typeof scene.nodes === "undefined")
             var nds = scene.nodes = [];
+        var nds = scene.nodes;
         let obj = create_object(params,update)
         nds.push(obj)
         return obj;

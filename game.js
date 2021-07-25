@@ -25,6 +25,20 @@ ctx.create_scene('my_scene', function () {
             }
         }
     );
+    var t = ctx.create_object(this, {
+            position: ctx.vector2(50, 50),
+            size: ctx.vector2(100, 100),
+            width: 100,
+            height: 100,
+            sprite: "",
+            layer: "back"
+        },
+        function () {
+            this.update = function () {
+                //r.move(ctx.vector2(1, 0));
+            }
+        }
+    );
 
     this.init = function () {
         console.log('inited');
@@ -33,6 +47,7 @@ ctx.create_scene('my_scene', function () {
     this.update = function () {
         //r.move(ctx.vector2(1,0));
         // ctx.view.move(ctx.vector2(1,0));
+        console.log(r.isCollision(t))
     };
     this.draw = function () {
     };
