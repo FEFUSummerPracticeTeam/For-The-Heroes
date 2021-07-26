@@ -3,18 +3,18 @@
     "ID": 0,
     "name": "Камень",
     "type": "Decoration",
-    "sprite": "stone.png"
+    "sprite": "dec_stone.png"
   },
   {
     "ID": 1,
     "name": "Куст",
     "type": "Decoration",
-    "sprite": "bush.png"
+    "sprite": "dec_bush.png"
   },
   {
     "ID": 2,
-    "name": "Цветочки",
+    "name": "Грибочки",
     "type": "Decoration",
-    "sprite": "flowers.png"
+    "sprite": "dec_mushrooms.png"
   }
 ]
