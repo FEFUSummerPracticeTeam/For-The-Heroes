@@ -3,18 +3,54 @@
     "ID": 0,
     "name": "Камень",
     "type": "Decoration",
-    "sprite": "dec_stone.png"
+    "sprite": "assets/sprites/dec_stone.png"
   },
   {
     "ID": 1,
     "name": "Куст",
     "type": "Decoration",
-    "sprite": "dec_bush.png"
+    "sprite": "assets/sprites/dec_bush.png"
   },
   {
     "ID": 2,
     "name": "Грибочки",
     "type": "Decoration",
-    "sprite": "dec_mushrooms.png"
+    "sprite": "assets/sprites/dec_mushrooms.png"
+  },
+  {
+    "ID": 3,
+    "name": "Бревно",
+    "type": "Decoration",
+    "sprite": "assets/sprites/dec_log.png"
+  },
+  {
+    "ID": 4,
+    "name": "Куст",
+    "type": "Decoration",
+    "sprite": "assets/sprites/dec_bush_yuki.png"
+  },
+  {
+    "ID": 5,
+    "name": "Камень",
+    "type": "Decoration",
+    "sprite": "assets/sprites/dec_stone_yuki.png"
+  },
+  {
+    "ID": 6,
+    "name": "Куст",
+    "type": "Decoration",
+    "sprite": "assets/sprites/dec_bush_aki.png"
+  },
+  {
+    "ID": 7,
+    "name": "Мусор",
+    "type": "Decoration",
+    "sprite": "assets/sprites/dec_log_sand.png"
+  },
+  {
+    "ID": 8,
+    "name": "Пальма",
+    "type": "Decoration",
+    "sprite": "assets/sprites/dec_palm.png"
   }
 ]

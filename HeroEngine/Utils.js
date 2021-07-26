@@ -18,3 +18,15 @@ function parseJSON(path, callback) {
 function getRootPath() {
     return location.href.substring(0, location.href.lastIndexOf('/') + 1);
 }
+
+//Генерирует случайное число в заданных границах
+//Принимает: low, high - границы, включая нижнюю, но не включая верхнюю
+//Возвращает: number - сгенерированное число
+function randomRange(low, high) {
+    return low + Math.random() * (high - low);
+}
+
+//Аналогично randomRange, но с округлением до целого
+function randomRangeInt(low, high) {
+    return low + Math.floor(Math.random() * (high - low));
+}

@@ -1,14 +1,15 @@
 // Часть движка, содержащая абстракции для всех логических элементов игры
 
-//Array типов айтемов, ключ - ID, инициализируется при вызове parseItems(), получать через getItems()
+//Array игроков на карте в порядке, определённым firebase'ом или же игроком (в случае ИИ)
+let players = []
+//Array типов айтемов, ключ - ID, инициализируется при вызове parseItems(), получать через getItem(id)
 const itemTypeList = [];
-//Array типов клеток, ключ - ID, инициализируется при вызове parseCells(), получать через getCells()
+//Array типов клеток, ключ - ID, инициализируется при вызове parseCells(), получать через getCellType(id)
 const cellTypeList = [];
-//Array типов декораций, ключ - ID, инициализацируется при вызове parseDecorations(), private
+//Array типов декораций, ключ - ID, инициализацируется при вызове parseDecorations(), получать через getDecoration(id)
 const decorTypeList = [];
 //2D Array - массив всего поля игры, получение через getGameMap()
 const gameMap = [];
-let simplex;
 
 //Функция, инициализирующая игру, должна вызываться на старте игровой комнаты
 //Принимает: void
@@ -20,6 +21,9 @@ function gameInitialize() {
 }
 
 class Player {
+    x; //Позиция в тайлах
+    y;
+
     //начальные значения потом изменю
     constructor(name) {
         this.name = name;
@@ -37,7 +41,8 @@ class Player {
         this.agility = 1; //ловкость
         this.speed = 1;
         this.fortune = 1;
-        this.items = []; //массив айтемов игрока, хранит ID
+        this.items = new Map(); //Map айтемов игрока, хранит количество по ключам объектов Item
+        this.cell = null; //объект Cell, на котором стоит данный игрок
     }
 
 
@@ -117,6 +122,25 @@ class Player {
         this.speed *= (1 + percent / 100);
     }
 
+    //передвижение игрока на нужную клетку
+    move(cell) {
+        this.cell = cell;
+        this.x = cell.x;
+        this.y = cell.y;
+    }
+
+    //Получение айтема игроком
+    //Принимает: item - объект типа Item
+    //Возвращает: void
+    pickItem(item) {
+        let localItem = this.items.get(item);
+        if (localItem === undefined) {
+            this.items.set(item, 1);
+        } else {
+            this.items.set(item, localItem + 1);
+        }
+    }
+
 
     /* ----------------------------------------------------------------
                               заклинания
@@ -159,6 +183,8 @@ class Player {
 }
 
 //Абстракция айтемов игры
+//В текущей имплементации Item = ItemType, т.е. в единый момент существует только один объект каждого айтема
+//Пока что это нормально т.к. у нас нет индивидуальных особенностей у айтема, например прочности
 class Item {
     ID;
     name;
@@ -194,23 +220,24 @@ class Item {
                 }
                 break;
         }
-        player.items.push(this.ID);
     }
 }
 
-//Получение всех айтемов
-//Принимает: void
-//Возвращает: Map объектов типа Item - все айтемы игры
-function getItems() {
-    return itemTypeList;
+//Получение айтема по ID
+//Принимает: ID
+//Возвращает: Item - объект нужного айтема
+function getItem(ID) {
+    return itemTypeList[ID];
 }
 
-//Класс клеток карты
+//Класс клеток карты, используем ID потому, что так удобнее сериализовать
 class Cell {
-    constructor(x, y, ID) {
+    itemID; // ID объекта Item, если на клетке лежит предмет
+    decorID; // ID объекта декорации, если на клетке есть декорация
+    constructor(x, y, cellTypeID) {
         this.x = x;
         this.y = y;
-        this.ID = ID; //ID типа клетки
+        this.cellTypeID = cellTypeID; //ID CellType клетки
     }
 }
 
@@ -227,13 +254,38 @@ function generateGameMap() {
             gameMap[[x, y]] = new Cell(x, y, getBiomeID(heightMap[[x, y]], moistureMap[[x, y]], heatMap[[x, y]]));
         }
     }
+    let decorCnt = randomRangeInt(minDecorCount, maxDecorCount);
+    for (let i = 0; i < decorCnt; i++) {
+        let cell = gameMap[[randomRangeInt(0, mapWidth), randomRangeInt(0, mapHeight)]];
+        let cellType = getCellType(cell.cellTypeID);
+        cell.decorID = cellType.decor[randomRangeInt(0, cellType.decor.length)];
+    }
+    //Сначала кладём всё, что в массиве item, потом - на рандом
+    for (let i = 0; i < itemCount; i++) {
+        let cell;
+        while (true) {
+            cell = gameMap[[randomRangeInt(0, mapWidth), randomRangeInt(0, mapHeight)]];
+            if (cell.decorID === undefined) break;
+        }
+        cell.itemID = i < itemTypeList.length ? i : itemTypeList[randomRangeInt(0, itemTypeList.length)].ID;
+    }
 }
 
-//Получение всех типов клеток
-//Принимает: void
-//Возвращает: Map объектов типа CellType - все типы клеток игры
-function getCellTypes() {
-    return cellTypeList;
+//Получение нужного типа клетки по ID
+//Структуру объекта CellType можно посмотреть в CellTypes.json
+//Принимает: ID - ID нужного типа клетки
+//Возвращает: CellType - объект нужного типа клетки
+function getCellType(ID) {
+    return cellTypeList[ID];
+}
+
+
+//Получение декорации по ID
+//Структуру объекта Decoration можно посмотреть в CellTypes.json
+//Принимает: ID - ID декорации
+//Возвращает: Decoration - объект нужной декорации
+function getDecoration(ID) {
+    return decorTypeList[ID];
 }
 
 //Получение игрового поля
@@ -272,10 +324,10 @@ function getBiomeID(height, moisture, heat) {
         console.log(height);
         if (height >= cellType.value[0] && moisture >= cellType.value[1] && heat >= cellType.value[2]) {
             let diff = (height - cellType.value[0]) + (moisture - cellType.value[1]) + (heat - cellType.value[2]);
-            if(bestDiffID === undefined){
+            if (bestDiffID === undefined) {
                 bestDiffID = cellType.ID;
                 bestDiff = diff;
-            }else{
+            } else {
                 if (diff < bestDiff) {
                     bestDiff = diff;
                     bestDiffID = cellType.ID;

@@ -1,8 +1,11 @@
 //Часть движка, хранящая константы/enum
 
-//(Model) Размер карты
+//(Model) Парметры карты
 const mapWidth = 10;
 const mapHeight = 10;
+const maxDecorCount = 25;
+const minDecorCount = 10;
+const itemCount = 15;
 
 //(Model) Виды айтемов, позволяют понимать, что делать при их применении
 //Все нестандартные виды айтемов имеют свой отдельный тип
