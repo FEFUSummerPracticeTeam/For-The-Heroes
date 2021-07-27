@@ -72,11 +72,16 @@ var CustJS = function (_box,_layers) { // _box - поле в котором бу
         }
 
         draw_object(p){ // метод рисования на слое
-            this.context.fillStyle = "red";
             var dp = vp(p.x,p.y);
-            this.context.fillRect(dp.x,dp.y,p.width,p.height);
-            /*context.drawImage(this.sprite, this.x, this.y, this.width, this.height);*/
-           /* this.cont.fillText("Hi me",50,50);*/
+            if(p.color){
+                this.context.fillStyle = p.color;
+                this.context.fillRect(dp.x,dp.y,p.width,p.height);
+            }
+            if(p.file) {
+                if (!imgList[p.file]) return;
+                if (!imgList[p.file].loaded) return;
+                this.context.drawImage(imgList[p.file].image, dp.x, dp.y, p.width, p.height);
+            }
         }
     }
 
@@ -217,9 +222,14 @@ var CustJS = function (_box,_layers) { // _box - поле в котором бу
             this.obj = construct;
             this.position = p.position;
             this.size = p.size;
-            this.sprite = new Image();
-            this.sprite.src = p.sprite;
+            this.color = p.color;
+            this.sprite = false;
             this.layer = p.layer || "main" ;
+
+            if(p.sprite){
+                this.sprite=p.sprite;
+                LoadImage(p.sprite);
+            }
         }
 
         draw() {
@@ -228,7 +238,8 @@ var CustJS = function (_box,_layers) { // _box - поле в котором бу
                 y:this.position.y,
                 width: this.size.x,
                 height: this.size.y,
-                sprite: this.sprite
+                color: this.color,
+                file: this.sprite
             })
         }
         move(p){
@@ -271,11 +282,71 @@ var CustJS = function (_box,_layers) { // _box - поле в котором бу
     var vp = function (x,y) {          // расчет смещения объектов  относительно камеры
         return vector2(x,y).minus(view.position);
     };
+
+
+
+
+
+    //IMAGE_LOAD//
+    var imgList ={};                    // создаем хранилище спрайтов
+    var LoadImage = function (file) {
+        if(imgList[file])return;  // проверяем загрузили ли мы уже этот спрайт
+
+        var image = document.createElement('img');
+
+        imgList[file]={
+            loaded: false,
+            image: image
+        };
+
+        var _image = imgList[file];
+
+        image.onload = function () {   // если спрайт получен даем добро на использование картинки
+            _image.loaded = true;
+        };
+        image.src = file;
+    };
     
     
-    
-    
-    
+    //KEYBOARD//
+
+    var kbInited = false;
+    this.KeyBoard = function(){
+        if(kbInited) return; // проверяем создана ли уже клавиатура
+        kbInited =true;
+
+        var keys = {  // создаем пул кнопок
+            'UP': 'ArrowUp',
+            'DOWN': 'ArrowDown',
+            'LEFT':'ArrowLeft',
+            'RIGHT':'ArrowRight',
+            'W':'KeyW',
+            'A':'KeyA',
+            'S':'KeyS',
+            'D':'KeyD',
+            'E':'KeyE',
+            'Q':'KeyQ',
+            'SHIFT':'ShiftLeft',
+            'CTRL':'ControlLeft',
+            'SPACE':'Space'
+        };
+
+
+        var pressedKeys={};   // создаем хранилище кнопок где будем хранитить их состояние(нажата или нет)
+        window.addEventListener('keydown',function (e){
+            pressedKeys[e.code]=true;
+        })
+        window.addEventListener('keyup',function (e){
+            pressedKeys[e.code]=false;
+        })
+
+        var kb = {
+            isDown: function (keyName){ // функция которая по имени клавиши если она нажата вернет True
+                return !! pressedKeys[keys[keyName]];
+            }
+        };
+        return kb;
+    }
     
     
     
