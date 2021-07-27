@@ -23,8 +23,9 @@ function gameInitialize(gameCallback) {
     parseItems();
     parseCells();
     parseDecorations();
+    parseMonsters();
     if (shouldGenerateField()) {
-        generateGameMap();
+        MapGenerator.generateGameMap();
         makeEvent({
             cmdID: commands.Map,
             gameMap: getGameMap()
@@ -131,7 +132,7 @@ class Player {
     ---------------------------------------------------------------- */
 
     isDead() {
-        this.health > 0 ? false : true;
+        return this.health <= 0;
     }
 
     //функция получает силу противника и, в зависимости от наличия брони, уменьшает здоровье игрока
@@ -215,7 +216,7 @@ class Monster {
     sprite;
 
     isDead(player) {
-        if (this.health > 0) 
+        if (this.health > 0)
             return false;
         player.getExperience(this.experience);
         //монстр должен пропасть с поля
@@ -224,15 +225,22 @@ class Monster {
 
     getDamage(damage, player) {
         this.health -= damage;
+        this.hitPlayer(player); //пока что монстр просто атакует в ответ, естественно есть более интересные варианты
         this.isDead(player);
     }
 
     hitPlayer(player) {
         player.getDamage(this.damage);
     }
-
 }
 
+
+//Осуществляет ход ИИ
+//Принимает: Player - за какого игрока делать ход
+//Возвращает: void
+function doAITurn(player) {
+//TODO
+}
 
 //Абстракция айтемов игры
 //В текущей имплементации Item = ItemType, т.е. в единый момент существует только один объект каждого айтема
@@ -243,6 +251,17 @@ class Item {
     type;
     value;
     sprite;
+
+    removeItem(player) {
+        let cnt = player.items.get(this.ID);
+        if (cnt !== 0) {
+            if (cnt === 1) {
+                players.items.delete(this.ID);
+            } else {
+                player.items.set(this.ID, players.item.get(this.ID) - 1);
+            }
+        }
+    }
 
     //При его использовании мы делаем что-то в соответствии с его типом
     useItem(player) {
@@ -255,9 +274,11 @@ class Item {
                 break;
             case ItemTypes.HPHealing:
                 player.getHealth(this.value);
+                this.removeItem(player);
                 break;
             case ItemTypes.ManaHealing:
                 player.getMana(this.value);
+                this.removeItem(player);
                 break;
             case ItemTypes.Magic:
                 if (!player.isEnoughMana(this.value)) break;
@@ -275,17 +296,11 @@ class Item {
     }
 }
 
-//Получение айтема по ID
-//Принимает: ID
-//Возвращает: Item - объект нужного айтема
-function getItem(ID) {
-    return itemTypeList[ID];
-}
-
 //Класс клеток карты, используем ID потому, что так удобнее сериализовать
 class Cell {
     itemID; // ID объекта Item, если на клетке лежит предмет
     decorID; // ID объекта декорации, если на клетке есть декорация
+    monsterID; //ID объекта монстра, если на клетке есть монстр
     constructor(x, y, cellTypeID) {
         this.x = x;
         this.y = y;
@@ -293,34 +308,117 @@ class Cell {
     }
 }
 
-//Генерация карты игрового поля
-//Принимает: void
-//Возвращает: void
-function generateGameMap() {
-    let heightMap = generateNoise(mapWidth, mapHeight, mapNoiseScale, heightWaves, sampleOffset);
-    let moistureMap = generateNoise(mapWidth, mapHeight, mapNoiseScale, moistureWaves, sampleOffset);
-    let heatMap = generateNoise(mapWidth, mapHeight, mapNoiseScale, heatWaves, sampleOffset);
 
-    for (let x = 0; x < mapWidth; x++) {
-        for (let y = 0; y < mapHeight; y++) {
-            gameMap[[x, y]] = new Cell(x, y, getBiomeID(heightMap[[x, y]], moistureMap[[x, y]], heatMap[[x, y]]));
+//Класс, отслеживающий ходы в игре
+class TurnTracker {
+    turnCnt = 0;
+    timePerTurn;
+    timeLeft;
+    currentInterval;
+
+    constructor(onTurnStartCallback, onTurnEndCallback) { //в обоих случаях передаётся ID того, чей был/будет ход
+        this.onTurnStartCallback = onTurnStartCallback;
+        this.onTurnEndCallback = onTurnEndCallback;
+        this.timePerTurn = 60 / players.length;
+    }
+
+    start() {
+        this.onTurnStartCallback(this.turnCnt % players.length);
+        this.timeLeft = this.timePerTurn;
+        this.currentInterval = setInterval(() => {
+            this.timeLeft--;
+            if (this.timeLeft === 0) {
+                this.finishTurn();
+            }
+        }, 1000);
+    }
+
+    finishTurn() {
+        window.clearInterval(this.currentInterval)
+        this.onTurnEndCallback(this.turnCnt % players.length);
+        this.turnCnt++;
+    }
+}
+
+//Класс, совмещающий в себе всё для генерации карты
+class MapGenerator {
+    //Генерация карты игрового поля
+    static generateGameMap() {
+        let heightMap = this.generateNoise(mapWidth, mapHeight, mapNoiseScale, heightWaves, sampleOffset);
+        let moistureMap = this.generateNoise(mapWidth, mapHeight, mapNoiseScale, moistureWaves, sampleOffset);
+        let heatMap = this.generateNoise(mapWidth, mapHeight, mapNoiseScale, heatWaves, sampleOffset);
+
+        for (let x = 0; x < mapWidth; x++) {
+            for (let y = 0; y < mapHeight; y++) {
+                gameMap[[x, y]] = new Cell(x, y, this.getBiomeID(heightMap[[x, y]], moistureMap[[x, y]], heatMap[[x, y]]));
+            }
         }
-    }
-    let decorCnt = randomRangeInt(minDecorCount, maxDecorCount);
-    for (let i = 0; i < decorCnt; i++) {
-        let cell = gameMap[[randomRangeInt(0, mapWidth), randomRangeInt(0, mapHeight)]];
-        let cellType = getCellType(cell.cellTypeID);
-        cell.decorID = cellType.decor[randomRangeInt(0, cellType.decor.length)];
-    }
-    //Сначала кладём всё, что в массиве item, потом - на рандом
-    for (let i = 0; i < itemCount; i++) {
-        let cell;
-        while (true) {
+        let decorCnt = randomRangeInt(minDecorCount, maxDecorCount);
+        for (let i = 0; i < decorCnt; i++) {
+            let cell = gameMap[[randomRangeInt(0, mapWidth), randomRangeInt(0, mapHeight)]];
+            let cellType = getCellType(cell.cellTypeID);
+            cell.decorID = cellType.decor[randomRangeInt(0, cellType.decor.length)];
+        }
+        //Сначала кладём всё, что в массиве item, потом - на рандом
+        for (let i = 0; i < itemCount; i++) {
+            let cell;
             cell = gameMap[[randomRangeInt(0, mapWidth), randomRangeInt(0, mapHeight)]];
-            if (cell.decorID === undefined) break;
+            cell.itemID = i < itemTypeList.length ? i : itemTypeList[randomRangeInt(0, itemTypeList.length)].ID;
         }
-        cell.itemID = i < itemTypeList.length ? i : itemTypeList[randomRangeInt(0, itemTypeList.length)].ID;
+        for (let i = 0; i < monsterCount; i++) {
+            let cell;
+            while (true) {
+                cell = gameMap[[randomRangeInt(0, mapWidth), randomRangeInt(0, mapHeight)]];
+                if (cell.itemID === undefined) break;
+            }
+            cell.monsterID = i < monsterTypeList.length ? i : monsterTypeList[randomRangeInt(0, monsterTypeList.length)].ID;
+        }
     }
+
+    //(private) Генерация карты перлиновского шума
+    //Принимает: int width, int height, float scale, Array(Wave) Waves, Vector2 offset
+    //Возвращает: 2D float Array
+    static generateNoise(width, height, scale, waves, offset) {
+        let noiseMap = [];
+        for (let x = 0; x < width; x++) {
+            for (let y = 0; y < height; y++) {
+                noiseMap[[x, y]] = 0;
+                let sampleX = x * scale + offset.x;
+                let sampleY = y * scale + offset.y;
+                let norm = 0.0;
+                for (const wave of waves) {
+                    noiseMap[[x, y]] += wave.amplitude * noise(sampleX * wave.frequency + wave.seed, sampleY * wave.frequency + wave.seed);
+                    norm += wave.amplitude;
+                }
+                noiseMap[[x, y]] /= norm;
+            }
+        }
+        return noiseMap;
+    }
+
+
+    //(private) Получение ID биома в зависимости от выбранной точки на карте шумов
+    static getBiomeID(height, moisture, heat) {
+        let bestDiff;
+        let bestDiffID;
+        for (const cellType of cellTypeList.values()) {
+            console.log(height);
+            if (height >= cellType.value[0] && moisture >= cellType.value[1] && heat >= cellType.value[2]) {
+                let diff = (height - cellType.value[0]) + (moisture - cellType.value[1]) + (heat - cellType.value[2]);
+                if (bestDiffID === undefined) {
+                    bestDiffID = cellType.ID;
+                    bestDiff = diff;
+                } else {
+                    if (diff < bestDiff) {
+                        bestDiff = diff;
+                        bestDiffID = cellType.ID;
+                    }
+                }
+            }
+        }
+        return bestDiffID === undefined ? cellTypeList[0].ID : bestDiffID;
+    }
+
 }
 
 //Получение нужного типа клетки по ID
@@ -354,47 +452,11 @@ function getGameMap() {
     return gameMap;
 }
 
-//(private) Генерация карты перлиновского шума
-//Принимает: int width, int height, float scale, Array(Wave) Waves, Vector2 offset
-//Возвращает: 2D float Array
-function generateNoise(width, height, scale, waves, offset) {
-    let noiseMap = [];
-    for (let x = 0; x < width; x++) {
-        for (let y = 0; y < height; y++) {
-            noiseMap[[x, y]] = 0;
-            let sampleX = x * scale + offset.x;
-            let sampleY = y * scale + offset.y;
-            let norm = 0.0;
-            for (const wave of waves) {
-                noiseMap[[x, y]] += wave.amplitude * noise(sampleX * wave.frequency + wave.seed, sampleY * wave.frequency + wave.seed);
-                norm += wave.amplitude;
-            }
-            noiseMap[[x, y]] /= norm;
-        }
-    }
-    return noiseMap;
-}
-
-//(private) Получение ID биома в зависимости от выбранной точки на карте шумов
-function getBiomeID(height, moisture, heat) {
-    let bestDiff;
-    let bestDiffID;
-    for (const cellType of cellTypeList.values()) {
-        console.log(height);
-        if (height >= cellType.value[0] && moisture >= cellType.value[1] && heat >= cellType.value[2]) {
-            let diff = (height - cellType.value[0]) + (moisture - cellType.value[1]) + (heat - cellType.value[2]);
-            if (bestDiffID === undefined) {
-                bestDiffID = cellType.ID;
-                bestDiff = diff;
-            } else {
-                if (diff < bestDiff) {
-                    bestDiff = diff;
-                    bestDiffID = cellType.ID;
-                }
-            }
-        }
-    }
-    return bestDiffID === undefined ? cellTypeList[0].ID : bestDiffID;
+//Получение айтема по ID
+//Принимает: ID
+//Возвращает: Item - объект нужного айтема
+function getItem(ID) {
+    return itemTypeList[ID];
 }
 
 //(private) Интерпретатор команд с firebase

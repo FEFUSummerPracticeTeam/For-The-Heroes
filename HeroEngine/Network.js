@@ -157,10 +157,17 @@ function initEventCallback() {
         if (!lobbyPlayers.hasOwnProperty(prop) || prop.localeCompare(playerID) === 0) continue;
         database.ref('events/' + lobbyID + '/' + prop).on('child_added', (data) => {
             let i = getLobbyPlayers().indexOf(item => item.id === prop);
-            for (const callback of eventCallbacks) {
-                callback(i, data);
-            }
+            callListeners(i, data);
         });
+    }
+}
+
+//Позволяет вызвать все листенеры ивентов со своими параметрами
+//Принимает: i - индекс игрока, осущ. действие, data - пакет данных действия
+//Возвращает: void
+function callListeners(i, data) {
+    for (const callback of eventCallbacks) {
+        callback(i, data);
     }
 }
 

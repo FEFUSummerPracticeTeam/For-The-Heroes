@@ -9,6 +9,7 @@ const mapHeight = 10;
 const maxDecorCount = 25;
 const minDecorCount = 10;
 const itemCount = 15;
+const monsterCount = 20;
 const AIPlayerCount = 1;
 
 //(Model) Виды айтемов, позволяют понимать, что делать при их применении
