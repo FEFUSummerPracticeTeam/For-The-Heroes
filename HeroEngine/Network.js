@@ -8,6 +8,8 @@ let playerID;
 let lobbyID;
 //Список игроков в лобби, чтобы повесить на каждого соотв. коллбек, получение: getLobbyPlayers()
 let lobbyPlayers;
+//Список листенеров на ивенты с сервера
+let eventCallbacks = [];
 
 //Инициализация network-стека движка, должна выполняться сразу перед взаимодействием с онлайн частью
 //Принимает: (опц.) коллбек на окончание инициализации
@@ -38,18 +40,25 @@ function createLobby(lobbyName, onLobbyCreatedListener) {
 }
 
 //Подключение к лобби
-//Принимает: имя игрока, ID лобби, (опц) коллбек изменения кол-ва игроков в лобби, принимающий массив игроков в лобби{id;name}
+//Принимает: имя игрока, ID лобби, коллбек на команды с сервера(помимо коллбека в Model),
+// (опц) коллбек изменения кол-ва игроков в лобби, принимающий массив игроков в лобби{id;name}
 //Возвращает: string - ID этого игрока
-function joinLobby(playerName, lobbyID, onNewConnectionListener) {
+function joinLobby(playerName, lobbyID, onNewCommandListener, onNewConnectionListener) {
     let playerRef = database.ref('players/' + lobbyID).push();
     playerID = playerRef.key;
     playerRef.set({name: playerName, id: playerID});
     database.ref('players/' + lobbyID).on('value', (snapshot) => {
         let response = snapshot.val();
         lobbyPlayers = response === null ? [] : Object.values(response);
+        lobbyPlayers.sort((p1, p2) => {
+            return p1.id.localeCompare(p2.id);
+        });
         if (onNewConnectionListener !== undefined) {
             onNewConnectionListener(getLobbyPlayers());
         }
+        addEventCallback(onNewCommandListener);
+        addEventCallback(cmdHandler);
+        bindOfflineAction();
     });
     return playerID;
 }
@@ -101,9 +110,14 @@ function cleanOldLobbies() {
 //Принимает: void
 //Возвращает: bool - является ли этот игрок первым
 function shouldGenerateField() {
-    return getLobbyPlayers().sort((p1, p2) => {
-        return p1.id.localeCompare(p2.id);
-    })[0].localeCompare(playerID) === 0;
+    return getCurrentPlayerIndex() === 0;
+}
+
+//Функция возвращает индекс текущего игрока
+//Принимает: void
+//Возвращает: number - номер текущего игрока
+function getCurrentPlayerIndex() {
+    return getLobbyPlayers().indexOf(item => item.id === playerID);
 }
 
 //Получение списка лобби
@@ -134,17 +148,27 @@ function getLobbyPlayers() {
     return lobbyPlayers;
 }
 
-//Позволяет установить коллбек на события сервера
-//Принимает: коллбек, ему на все новые ивенты будет передаваться 1) ID игрока 2) объект нового ивента
+//Инициализирует коллбек-систему событий игроков
+//Принимает: void
 //Возвращает: void
-function setEventCallback(onNewEventListener) {
+function initEventCallback() {
     for (const prop in lobbyPlayers) {
         //проверка на то, что мы не итерируем поля прототипов и не делаем коллбек на этого игрока
         if (!lobbyPlayers.hasOwnProperty(prop) || prop.localeCompare(playerID) === 0) continue;
         database.ref('events/' + lobbyID + '/' + prop).on('child_added', (data) => {
-            onNewEventListener(prop, data);
+            let i = getLobbyPlayers().indexOf(item => item.id === prop);
+            for (const callback of eventCallbacks) {
+                callback(i, data);
+            }
         });
     }
+}
+
+//Позволяет установить коллбек на события сервера
+//Принимает: коллбеки, им на все новые ивенты будут передаваться 1) Индекс игрока в массиве 2) объект нового ивента
+//Возвращает: void
+function addEventCallback(callback) {
+    eventCallbacks.push(callback);
 }
 
 //Позволяет записать своё событие на сервер

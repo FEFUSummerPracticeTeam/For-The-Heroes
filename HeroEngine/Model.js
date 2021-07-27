@@ -1,6 +1,6 @@
 // Часть движка, содержащая абстракции для всех логических элементов игры
 
-//Array игроков на карте в порядке, определённым firebase'ом или же игроком (в случае ИИ)
+//Array{Player} на карте в порядке, определённым firebase'ом или же игроком (в случае ИИ)
 let players = []
 //Array типов айтемов, ключ - ID, инициализируется при вызове parseItems(), получать через getItem(id)
 const itemTypeList = [];
@@ -9,15 +9,35 @@ const cellTypeList = [];
 //Array типов декораций, ключ - ID, инициализацируется при вызове parseDecorations(), получать через getDecoration(id)
 const decorTypeList = [];
 //2D Array - массив всего поля игры, получение через getGameMap()
-const gameMap = [];
+let gameMap = [];
 
 //Функция, инициализирующая игру, должна вызываться на старте игровой комнаты
-//Принимает: void
+//Принимает: gameCallback - обработчик событий игры в соответствии с Constants.commands
 //Возвращает: void
-function gameInitialize() {
+function gameInitialize(gameCallback) {
+    if (isDebug) {
+        doDebugGame();
+    }
     parseItems();
     parseCells();
     parseDecorations();
+    if (shouldGenerateField()) {
+        generateGameMap();
+        makeEvent({
+            cmdID: commands.Map,
+            gameMap: getGameMap()
+        });
+    }
+    let lobbyPlayers = getLobbyPlayers();
+    for (let i = 0; i < lobbyPlayers.length; i++) {
+        players[i] = new Player(lobbyPlayers[i].name, false);
+    }
+    if (lobbyPlayers.length === 1) {
+        for (let i = 1; i < AIPlayerCount; i++) {
+            players[i] = new Player('AI ' + i, true);
+        }
+    }
+    addEventCallback(gameCallback);
 }
 
 class Player {
@@ -25,7 +45,7 @@ class Player {
     y;
 
     //начальные значения потом изменю
-    constructor(name) {
+    constructor(name, isAI) {
         this.name = name;
         this.level = 1;
         this.points = 1; //очки навыков
@@ -43,6 +63,7 @@ class Player {
         this.fortune = 1;
         this.items = new Map(); //Map айтемов игрока, хранит количество по ключам объектов Item
         this.cell = null; //объект Cell, на котором стоит данный игрок
+        this.isAI = isAI; //Является ли этот игрок ботом
     }
 
 
@@ -338,7 +359,32 @@ function getBiomeID(height, moisture, heat) {
     return bestDiffID === undefined ? cellTypeList[0].ID : bestDiffID;
 }
 
-//(private) Асинхронный парсинг JSON файла типов клеток
+//(private) Интерпретатор команд с firebase
+function cmdHandler(Player, ev) { //Player - индекс игрока в массиве игроков
+    //TODO
+    switch (ev.cmdID) {
+        case commands.Map:
+            gameMap = ev.gameMap;
+            break;
+        case commands.Disconnected:
+            break;
+        case commands.TurnEnd:
+            break;
+        case commands.Item:
+            break;
+        case commands.Movement:
+            break;
+        case commands.Action:
+            break;
+    }
+}
+
+//функция, фиксящая все несостыковки на время дебага
+function doDebugGame() {
+    lobbyPlayers = [{name: 'Player 1', id: '12345'}];
+}
+
+//(private) Парсинг JSON файла типов клеток
 function parseCells() {
     parseJSON("JSON/CellTypes.json", (result) => {
         result.forEach((cellType) => {
@@ -356,7 +402,7 @@ function parseDecorations() {
     });
 }
 
-//(private) Асинхронный парсинг JSON файла айтемов
+//(private) Парсинг JSON файла айтемов
 function parseItems() {
     parseJSON("JSON/Items.json", (result) => {
         result.forEach((item) => {
