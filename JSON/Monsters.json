@@ -1,0 +1,29 @@
+[
+    {
+      "ID": 0,
+      "name": "Монстр1",
+      "type": "Monster",
+      "health": "100",
+      "damage": "20",
+      "experience": "20",
+      "sprite": ""
+    },
+    {
+      "ID": 1,
+      "name": "Монстр2",
+      "type": "Monster",
+      "health": "200",
+      "damage": "25",
+      "experience": "30",
+      "sprite": ""
+    },
+    {
+      "ID": 2,
+      "name": "Монстр3",
+      "type": "Monster",
+      "health": "300",
+      "damage": "30",
+      "experience": "50",
+      "sprite": ""
+    }
+  ]

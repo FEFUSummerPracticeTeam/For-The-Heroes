@@ -8,6 +8,8 @@ const itemTypeList = [];
 const cellTypeList = [];
 //Array типов декораций, ключ - ID, инициализацируется при вызове parseDecorations(), получать через getDecoration(id)
 const decorTypeList = [];
+//Array типов монстров, ключ - ID, инициализируется при вызове parseMonsters(), получать через getMonster(id)
+const monsterTypeList = [];
 //2D Array - массив всего поля игры, получение через getGameMap()
 let gameMap = [];
 
@@ -203,6 +205,35 @@ class Player {
 
 }
 
+class Monster {
+    ID;
+    name;
+    type;
+    health;
+    damage;
+    experience;
+    sprite;
+
+    isDead(player) {
+        if (this.health > 0) 
+            return false;
+        player.getExperience(this.experience);
+        //монстр должен пропасть с поля
+        return true;
+    }
+
+    getDamage(damage, player) {
+        this.health -= damage;
+        this.isDead(player);
+    }
+
+    hitPlayer(player) {
+        player.getDamage(this.damage);
+    }
+
+}
+
+
 //Абстракция айтемов игры
 //В текущей имплементации Item = ItemType, т.е. в единый момент существует только один объект каждого айтема
 //Пока что это нормально т.к. у нас нет индивидуальных особенностей у айтема, например прочности
@@ -300,13 +331,20 @@ function getCellType(ID) {
     return cellTypeList[ID];
 }
 
-
 //Получение декорации по ID
 //Структуру объекта Decoration можно посмотреть в CellTypes.json
 //Принимает: ID - ID декорации
 //Возвращает: Decoration - объект нужной декорации
 function getDecoration(ID) {
     return decorTypeList[ID];
+}
+
+//Получение монстра по ID
+//Структуру объекта Monster можно посмотреть в Monsters.json
+//Принимает: ID - ID монстра
+//Возвращает: Monster - объект нужного монстра
+function getMonster(ID) {
+    return monsterTypeList[ID];
 }
 
 //Получение игрового поля
@@ -398,6 +436,15 @@ function parseDecorations() {
     parseJSON("JSON/Decorations.json", (result) => {
         result.forEach((decoration) => {
             decorTypeList[decoration.ID] = decoration;
+        });
+    });
+}
+
+//(private) Парсинг JSON файла монстров
+function parseMonsters() {
+    parseJSON("JSON/Monsters.json", (result) => {
+        result.forEach((monster) => {
+            monsterTypeList[monster.ID] = monster;
         });
     });
 }
