@@ -1,29 +1,38 @@
 [
-    {
-      "ID": 0,
-      "name": "Монстр1",
-      "type": "Monster",
-      "health": "100",
-      "damage": "20",
-      "experience": "20",
-      "sprite": ""
-    },
-    {
-      "ID": 1,
-      "name": "Монстр2",
-      "type": "Monster",
-      "health": "200",
-      "damage": "25",
-      "experience": "30",
-      "sprite": ""
-    },
-    {
-      "ID": 2,
-      "name": "Монстр3",
-      "type": "Monster",
-      "health": "300",
-      "damage": "30",
-      "experience": "50",
-      "sprite": ""
-    }
-  ]
+  {
+    "ID": 0,
+    "name": "Неизвестное",
+    "type": "Monster",
+    "health": "100",
+    "damage": "20",
+    "experience": "20",
+    "sprite": "assets/sprites/monster_wtf.png"
+  },
+  {
+    "ID": 1,
+    "name": "Скелепон",
+    "type": "Monster",
+    "health": "200",
+    "damage": "25",
+    "experience": "30",
+    "sprite": "assets/sprites/monster_skeleton.png"
+  },
+  {
+    "ID": 2,
+    "name": "Слизелень",
+    "type": "Monster",
+    "health": "300",
+    "damage": "30",
+    "experience": "50",
+    "sprite": "assets/sprites/monster_slime.png"
+  },
+  {
+    "ID": 3,
+    "name": "Древний маг",
+    "type": "Monster",
+    "health": "300",
+    "damage": "30",
+    "experience": "50",
+    "sprite": "assets/sprites/monster_mage.png"
+  }
+]

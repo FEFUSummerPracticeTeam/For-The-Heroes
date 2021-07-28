@@ -4,39 +4,39 @@
     "name": "Щит",
     "type": "Armour",
     "value": "20",
-    "sprite": ""
+    "sprite": "assets/sprites/item_shield.png"
   },
   {
     "ID": 1,
     "name": "Меч",
     "type": "Weapon",
     "value": "50",
-    "sprite": ""
+    "sprite": "assets/sprites/item_sword.png"
   },
   {
     "ID": 2,
     "name": "Леч. зелье",
     "type": "HPHeal",
     "value": "30",
-    "sprite": ""
+    "sprite": "assets/sprites/item_hp.png"
   },
   {
     "ID": 3,
     "name": "Зелье маны",
     "type": "ManaHeal",
     "value": "30",
-    "sprite": ""
+    "sprite": "assets/sprites/item_mana.png"
   },
   {
     "ID": 4,
-    "name": "Регенерация",
+    "name": "Файрбол",
     "type": "Magic",
     "value": "20",
-    "sprite": ""
+    "sprite": "magic_fireball.png"
   },
   {
     "ID": 5,
-    "name": "Невидимость",
+    "name": "Лечение",
     "type": "Magic",
     "value": "25",
     "sprite": ""
