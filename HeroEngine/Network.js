@@ -182,9 +182,12 @@ function addEventCallback(callback) {
 //Принимает: пакет Object с данными согласно описанию в Constants.js
 //Возвращает: void
 function makeEvent(data) {
-    let eventRef = database.ref('events/' + lobbyID + '/' + playerID).push();
-    data.eventKey = eventRef.key;
-    eventRef.set(data);
+    try{
+        let eventRef = database.ref('events/' + lobbyID + '/' + playerID).push();
+        data.eventKey = eventRef.key;
+        eventRef.set(data);
+    }catch (e){} //мы оффлайн
+
 }
 
 //Чистит свои прошлые ивенты с сервера, должно выполняться по окончании хода

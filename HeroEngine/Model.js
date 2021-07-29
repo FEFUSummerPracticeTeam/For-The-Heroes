@@ -35,7 +35,7 @@ function gameInitialize(gameCallback) {
     for (let i = 0; i < lobbyPlayers.length; i++) {
         players[i] = new Player(lobbyPlayers[i].name, false);
     }
-    if (lobbyPlayers.length === 1) {
+    if (lobbyPlayers.length < 1) {
         for (let i = 1; i < AIPlayerCount; i++) {
             players[i] = new Player('AI ' + i, true);
         }
@@ -201,7 +201,7 @@ class Player {
         //enemy должен потратить действие, чтобы затушить себя
     }
 
-    
+
     /* ----------------------------------------------------------------
                           прокачка персонажа
     ---------------------------------------------------------------- */
@@ -330,7 +330,7 @@ class Item {
                     case "Лечение":
                         player.regeneration();
                         break;
-                    case "Файрбол": 
+                    case "Файрбол":
                         player.fireball(enemy);
                         break;
                     case "Молния": //у противника меньше времени на свой ход
@@ -343,7 +343,7 @@ class Item {
                         //TODO
                         break;
                     case "Создание оружия": //создает случайное оружие
-                        //TODO
+                                            //TODO
                         break;
                     ////////////////////////////////////////////////////////////////
                 }

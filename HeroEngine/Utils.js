@@ -5,7 +5,7 @@
 //Возвращает: void
 function parseJSON(path, callback) {
     let request = new XMLHttpRequest();
-    request.open("GET", getRootPath() + path);
+    request.open("GET", getRootPath() + path, false);
     request.onload = ((res) => {
         callback(JSON.parse(request.response));
     });
