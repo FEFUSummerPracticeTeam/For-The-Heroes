@@ -35,18 +35,18 @@ function gameInitialize(gameCallback) {
     for (let i = 0; i < lobbyPlayers.length; i++) {
         players[i] = new Player(lobbyPlayers[i].name, false);
     }
-    if (lobbyPlayers.length < 1) {
-        for (let i = 1; i < AIPlayerCount; i++) {
+    if (lobbyPlayers.length <= 1) {
+        for (let i = 1; i < lobbyPlayers.length + AIPlayerCount; i++) {
             players[i] = new Player('AI ' + i, true);
         }
     }
-    for (let i of players) i.move ( gameMap [[randomRangeInt(0, mapWidth), randomRangeInt(0, mapWidth)]]);
+    for (let i of players) i.move(gameMap [[randomRangeInt(0, mapWidth), randomRangeInt(0, mapWidth)]]);
 
     addEventCallback(gameCallback);
 }
 
 class Player {
-    fieldCoordinates= {x:undefined,y:undefined};
+    fieldCoordinates = {x: undefined, y: undefined};
 
     //начальные значения потом изменю
     constructor(name, isAI) {
@@ -158,10 +158,8 @@ class Player {
     //передвижение игрока на нужную клетку
     move(cell) {
         this.cell = cell;
-        this.x = cell.x;
-        this.y = cell.y;
-        this.fieldCoordinates.x=this.cell.x*32*MapScale;
-        this.fieldCoordinates.y=this.cell.y*32*MapScale;
+        this.fieldCoordinates.x = this.cell.x * 32 * MapScale;
+        this.fieldCoordinates.y = this.cell.y * 32 * MapScale;
     }
 
 
@@ -299,7 +297,7 @@ function doAITurn(player) {
     for (let i = 0; i < player.speed; i++) {
         if (player.x !== targetCell.x) {
             player.x += targetCell.x < player.x ? -1 : 1;
-        }else if(player.y !== targetCell.y){
+        } else if (player.y !== targetCell.y) {
             player.y += targetCell.y < player.y ? -1 : 1;
         }
     }
@@ -362,7 +360,7 @@ class Item {
                         //TODO
                         break;
                     case "Создание оружия": //создает случайное оружие
-                        //TODO
+                                            //TODO
                         break;
                     ////////////////////////////////////////////////////////////////
                 }
@@ -400,14 +398,15 @@ class TurnTracker {
 
     start() {
         this.currentPlayerIndex = this.turnCnt % players.length;
-        this.onTurnStartCallback(this.currentPlayerIndex);
         this.timeLeft = this.timePerTurn;
         this.currentInterval = setInterval(() => {
             this.timeLeft--;
             if (this.timeLeft === 0) {
                 this.finishTurn();
             }
-        }, 1000);
+            console.log("Ходит игрок " + turn_tracker.currentPlayerIndex + ", у него " + turn_tracker.timeLeft + " секунд");
+        }, 1);
+        this.onTurnStartCallback(this.currentPlayerIndex);
     }
 
     finishTurn() {

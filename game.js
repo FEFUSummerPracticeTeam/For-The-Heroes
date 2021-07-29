@@ -25,49 +25,33 @@ ctx.create_scene('my_scene', function () {
         for (let i = 0; i < mapWidth; i++)
             for (let j = 0; j < mapHeight; j++) {
                 ctx.create_object(this, {
-                        position: ctx.vector2(game_map[[i, j]].x * 32 * MapScale, game_map[[i, j]].y * 32 * MapScale),
-                        size: ctx.vector2(32 * MapScale, 32 * MapScale),
-                        sprite: getCellType(gameMap[[i, j]].cellTypeID).sprite,
-                        layer: "cells",
-                        color: "black"
-                    },
-                    function () {
-                        this.update = function () {
-                        }
-                    });
+                    position: ctx.vector2(game_map[[i, j]].x * 32 * MapScale, game_map[[i, j]].y * 32 * MapScale),
+                    size: ctx.vector2(32 * MapScale, 32 * MapScale),
+                    sprite: getCellType(gameMap[[i, j]].cellTypeID).sprite,
+                    layer: "cells",
+                    color: "black"
+                });
                 if (gameMap[[i, j]].decorID)
                     ctx.create_object(this, {
-                            position: ctx.vector2(game_map[[i, j]].x * 32 * MapScale, game_map[[i, j]].y * 32 * MapScale),
-                            size: ctx.vector2(32 * MapScale, 32 * MapScale),
-                            sprite: getDecoration(gameMap[[i, j]].decorID).sprite,
-                            layer: "decorations",
-                        },
-                        function () {
-                            this.update = function () {
-                            }
-                        });
+                        position: ctx.vector2(game_map[[i, j]].x * 32 * MapScale, game_map[[i, j]].y * 32 * MapScale),
+                        size: ctx.vector2(32 * MapScale, 32 * MapScale),
+                        sprite: getDecoration(gameMap[[i, j]].decorID).sprite,
+                        layer: "decorations",
+                    });
                 if (gameMap[[i, j]].itemID)
                     objects_on_field[i.toString() + j] = ctx.create_object(this, {
-                            position: ctx.vector2(game_map[[i, j]].x * 32 * MapScale, game_map[[i, j]].y * 32 * MapScale),
-                            size: ctx.vector2(32 * MapScale, 32 * MapScale),
-                            sprite: getItem(gameMap[[i, j]].itemID).sprite,
-                            layer: "decorations",
-                        },
-                        function () {
-                            this.update = function () {
-                            }
-                        });
+                        position: ctx.vector2(game_map[[i, j]].x * 32 * MapScale, game_map[[i, j]].y * 32 * MapScale),
+                        size: ctx.vector2(32 * MapScale, 32 * MapScale),
+                        sprite: getItem(gameMap[[i, j]].itemID).sprite,
+                        layer: "decorations",
+                    });
                 if (gameMap[[i, j]].monsterID)
                     objects_on_field[i.toString() + j] = ctx.create_object(this, {
-                            position: ctx.vector2(game_map[[i, j]].x * 32 * MapScale, game_map[[i, j]].y * 32 * MapScale),
-                            size: ctx.vector2(32 * MapScale, 32 * MapScale),
-                            sprite: getMonster(gameMap[[i, j]].monsterID).sprite,
-                            layer: "decorations",
-                        },
-                        function () {
-                            this.update = function () {
-                            }
-                        });
+                        position: ctx.vector2(game_map[[i, j]].x * 32 * MapScale, game_map[[i, j]].y * 32 * MapScale),
+                        size: ctx.vector2(24 * MapScale, 24 * MapScale),
+                        sprite: getMonster(gameMap[[i, j]].monsterID).sprite,
+                        layer: "decorations",
+                    });
             }
         for (let i = 0; i < players.length; i++)
             players_on_field[i] = ctx.create_object(this, {
@@ -76,18 +60,18 @@ ctx.create_scene('my_scene', function () {
                     sprite: "assets/sprites/player.png",
                     layer: "main",
                 },
-                function () {
-                    this.update = function () {
-                    }
-                });
+            );
 
         turn_tracker = new TurnTracker(() => {
+            if (players[turn_tracker.currentPlayerIndex].isAI === true) {
+                doAITurn(players[turn_tracker.currentPlayerIndex]);
+            }
+            turn_tracker.finishTurn();
         }, () => {
         });
         turn_tracker.start();
         ctx.view.move(players[turn_tracker.currentPlayerIndex].fieldCoordinates);
         window.addEventListener('keyup', function (e) {
-            current_player = turn_tracker.currentPlayerIndex;
             if (current_player === turn_tracker.currentPlayerIndex) {
                 let x = players[current_player].cell.x;
                 let y = players[current_player].cell.y;
@@ -111,9 +95,8 @@ ctx.create_scene('my_scene', function () {
                 }
                 ctx.view.move(players[current_player].fieldCoordinates);
             }
-        })
-
-    }
+        });
+    };
     this.update = function () {
 
     };

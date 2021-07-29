@@ -165,7 +165,9 @@ var CustJS = function (_box, _layers) { // _box - поле в котором б�
 
         update() {
             this.scene.update();
-            for (let i in this.scene.nodes) this.scene.nodes[i].update();
+            this.scene.nodes.forEach((node) => {
+                node.update !== undefined ? node.update(node) : null;
+            });
         }
 
         exit() {
@@ -173,10 +175,9 @@ var CustJS = function (_box, _layers) { // _box - поле в котором б�
         }
 
         draw_objects() {                    // отрисовывает все объекты
-            for (let i = 0; i < this.scene.nodes.length; i++)
-                if (typeof this.scene.nodes[i].draw !== "undefined")
-                    this.scene.nodes[i].draw();
-
+            this.scene.nodes.forEach((node) => {
+                node.draw !== undefined ? node.draw() : null;
+            });
         }
     }
 
@@ -198,13 +199,14 @@ var CustJS = function (_box, _layers) { // _box - поле в котором б�
 
     //OBJECTS//
     class object {
-        constructor(p, construct) {
-            this.obj = construct;
+        constructor(p, update) {
+            this.update = update;
             this.position = p.position;
             this.size = p.size;
             this.color = p.color;
             this.sprite = false;
             this.layer = p.layer || "main";
+            this.obj = p.obj;
 
             if (p.sprite) {
                 this.sprite = p.sprite;
@@ -227,10 +229,6 @@ var CustJS = function (_box, _layers) { // _box - поле в котором б�
 
         move(p) {
             this.position.plus(p);// тк это вектор
-        }
-
-        update() {   // функция которая берет функцию написанную как параметр при создании данного объекта
-            this.obj.update();
         }
 
         isCollision(obj) {
@@ -276,7 +274,7 @@ var CustJS = function (_box, _layers) { // _box - поле в котором б�
         if (typeof scene.nodes === "undefined")
             var nds = scene.nodes = [];
         var nds = scene.nodes;
-        let obj = create_object(params, update)
+        let obj = params.type === "text" ? new text_object(params, update) : new object(params, update);
         nds.push(obj)
         return obj;
     }

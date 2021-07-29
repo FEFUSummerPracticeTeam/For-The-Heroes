@@ -110,14 +110,14 @@ function cleanOldLobbies() {
 //Принимает: void
 //Возвращает: bool - является ли этот игрок первым
 function shouldGenerateField() {
-    return getCurrentPlayerIndex() < 0;
+    return getCurrentPlayerIndex() <= 0;
 }
 
 //Функция возвращает индекс текущего игрока
 //Принимает: void
 //Возвращает: number - номер текущего игрока
 function getCurrentPlayerIndex() {
-    return getLobbyPlayers().indexOf(item => item.id === playerID);
+    return isDebug ? 0 : getLobbyPlayers().indexOf(item => item.id === playerID);
 }
 
 //Получение списка лобби
