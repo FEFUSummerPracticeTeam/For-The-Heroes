@@ -69,7 +69,7 @@ ctx.create_scene('my_scene', function () {
                             }
                         });
             }
-        for (let i = 0; i < players.length ; i++)
+        for (let i = 0; i < players.length; i++)
             players_on_field[i] = ctx.create_object(this, {
                     position: players[i].fieldCoordinates,
                     size: ctx.vector2(32 * MapScale, 32 * MapScale),
@@ -93,27 +93,28 @@ ctx.create_scene('my_scene', function () {
                 let y = players[current_player].cell.y;
                 switch (e.code) {
                     case 'KeyW':
-                        players[current_player].move(game_map[[x,--y]]);
+                        players[current_player].move(game_map[[x, --y]]);
                         console.log(e.code)
                         break;
                     case 'KeyS':
-                        players[current_player].move(game_map[[x,++y]]);console.log(e.code)
+                        players[current_player].move(game_map[[x, ++y]]);
+                        console.log(e.code)
                         break;
                     case 'KeyD':
-                        players[current_player].move(game_map[[++x,y]]);console.log(e.code)
+                        players[current_player].move(game_map[[++x, y]]);
+                        console.log(e.code)
                         break;
                     case 'KeyA':
-                        players[current_player].move(game_map[[--x,y]]);console.log(e.code)
+                        players[current_player].move(game_map[[--x, y]]);
+                        console.log(e.code)
                         break;
                 }
                 ctx.view.move(players[current_player].fieldCoordinates);
             }
         })
 
-
-    };
+    }
     this.update = function () {
-        // TODO сделать слежку камерой
 
     };
     this.draw = function () {

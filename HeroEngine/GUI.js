@@ -4,6 +4,9 @@ var CustJS = function (_box, _layers) { // _box - поле в котором б�
     var CustJS = this;
 
 
+    // CONFIG//
+    var config = {font_size: 50, font_name: "serif"}
+
     //GLOBALS//
     var size = null
         , canvas_offset = null
@@ -68,6 +71,15 @@ var CustJS = function (_box, _layers) { // _box - поле в котором б�
                 if (!imgList[p.file]) return;
                 if (!imgList[p.file].loaded) return;
                 this.context.drawImage(imgList[p.file].image, dp.x, dp.y, p.width, p.height);
+            }
+        }
+
+        draw_text(p) {
+            if (p.font || p.size)
+                this.context.font = (p.size || config.font_size) + "px " + (p.font || config.font_name);
+            if (p.color) {
+                this.context.fillStyle = p.color;
+                this.context.fillText(p.text, p.x, p.y,)
             }
         }
     }
@@ -201,7 +213,7 @@ var CustJS = function (_box, _layers) { // _box - поле в котором б�
         }
 
         draw() {
-            if (this.IsInView()) {//todo
+            if (this.IsInView()) {
                 layers[this.layer].draw_object({
                     x: this.position.x,
                     y: this.position.y,
@@ -229,15 +241,36 @@ var CustJS = function (_box, _layers) { // _box - поле в котором б�
         }
 
         IsInView() {
-            return (this.position.x + this.size.x > view.position.x - size.x ) &&
-                (this.position.y + this.size.y   > view.position.y - size.y )  &&
-                (this.position.x  < view.position.x + size.x ) &&
-                (this.position.y  < view.position.y + size.y )
+            return (this.position.x + this.size.x > view.position.x - size.x) &&
+                (this.position.y + this.size.y > view.position.y - size.y) &&
+                (this.position.x < view.position.x + size.x) &&
+                (this.position.y < view.position.y + size.y)
         }
     }
 
+    class text_object extends object {
+        constructor(p, construct) {
+            super(p,construct);
+            this.font = p.font;
+            this.text = p.text;
+        }
+
+        draw() {
+            layers[this.layer].draw_text({
+                x: this.position.x,
+                y: this.position.y,
+                size: this.size,
+                color: this.color,
+                text: this.text
+            })
+
+        }
+
+
+    }
+
     var create_object = function (p, Constructor) {
-        return new object(p, new Constructor());
+        return p.type === "text" ? new text_object(p, new Constructor()) : new object(p, new Constructor());
     }
     this.create_object = function (scene, params, update) { // функция для создания объектов на сцене для использования из вне
         if (typeof scene.nodes === "undefined")
@@ -253,8 +286,8 @@ var CustJS = function (_box, _layers) { // _box - поле в котором б�
         this.position = vector2(0, 0);
 
         this.move = function (v) { // двигаем камеру
-            this.position.x = v.x - size.x / 2 > 0 ? v.x - size.x / 2 : this.position.x;
-            this.position.y = v.y - size.y / 2 > 0 ? v.y - size.y / 2 : this.position.y;
+            this.position.x = ((v.x - size.x / 2 > 0) && (v.x + size.x / 2 < (mapWidth + 1) * 32 * MapScale)) ? v.x - size.x / 2 : this.position.x;
+            this.position.y = ((v.y - size.y / 2 > 0) && (v.y + size.y / 2 < (mapHeight + 1) * 32 * MapScale)) ? v.y - size.y / 2 : this.position.y;
         }
     };
     var vp = function (x, y) {          // расчет смещения объектов  относительно камеры
