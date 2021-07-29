@@ -30,3 +30,30 @@ function randomRange(low, high) {
 function randomRangeInt(low, high) {
     return low + Math.floor(Math.random() * (high - low));
 }
+
+function inBounds(x, y, width, height) {
+    return x < width && x >= 0 && y < height && y >= 0;
+}
+
+class Queue {
+    queue = {};
+    tail = 0;
+    head = 0;
+
+    enqueue(element) {
+        this.queue[this.tail++] = element;
+    }
+
+    isEmpty() {
+        return this.tail === this.head;
+    }
+
+    dequeue() {
+        if (this.isEmpty()) {
+            return undefined;
+        }
+        let element = this.queue[this.head];
+        delete this.queue[this.head++];
+        return element;
+    }
+}

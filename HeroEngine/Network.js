@@ -110,7 +110,7 @@ function cleanOldLobbies() {
 //Принимает: void
 //Возвращает: bool - является ли этот игрок первым
 function shouldGenerateField() {
-    return getCurrentPlayerIndex() === 0;
+    return getCurrentPlayerIndex() < 0;
 }
 
 //Функция возвращает индекс текущего игрока

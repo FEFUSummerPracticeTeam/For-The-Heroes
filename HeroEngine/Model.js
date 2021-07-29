@@ -258,7 +258,32 @@ class Monster {
 //Принимает: Player - за какого игрока делать ход
 //Возвращает: void
 function doAITurn(player) {
-//TODO
+    //BFS
+    let queue = new Queue();
+    let d = 0;
+    let visited = new Map();
+    queue.enqueue(player.cell);
+    while (!queue.isEmpty()) {
+        let u = queue.dequeue();
+        let xy = {x: -3, y: -3}
+        for (let i = 0; i < 4; i++) {
+            xy.y++;
+            if (xy.y === 2) {
+                xy.y = 0;
+                xy.x++;
+            }
+            let x = u.x - xy.x;
+            let y = u.y - xy.y;
+            if (inBounds(x, y, mapWidth, mapHeight)) {
+                if (gameMap[x][y].cell.item !== undefined) {
+
+                } else if (gameMap[x][y].cell) {
+
+                }
+            }
+        }
+    }
+    //BFS END
 }
 
 //Абстракция айтемов игры
@@ -393,6 +418,10 @@ class MapGenerator {
         //Сначала кладём всё, что в массиве item, потом - на рандом
         for (let i = 0; i < itemCount; i++) {
             let cell;
+            while (true) {
+                cell = gameMap[[randomRangeInt(0, mapWidth), randomRangeInt(0, mapHeight)]];
+                if (cell.decorID === undefined) break;
+            }
             cell = gameMap[[randomRangeInt(0, mapWidth), randomRangeInt(0, mapHeight)]];
             cell.itemID = i < itemTypeList.length ? i : itemTypeList[randomRangeInt(0, itemTypeList.length)].ID;
         }
@@ -400,7 +429,7 @@ class MapGenerator {
             let cell;
             while (true) {
                 cell = gameMap[[randomRangeInt(0, mapWidth), randomRangeInt(0, mapHeight)]];
-                if (cell.itemID === undefined) break;
+                if (cell.itemID === undefined && cell.decorID === undefined) break;
             }
             cell.monsterID = i < monsterTypeList.length ? i : monsterTypeList[randomRangeInt(0, monsterTypeList.length)].ID;
         }
