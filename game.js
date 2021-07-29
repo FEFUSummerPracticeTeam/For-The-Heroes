@@ -1,58 +1,115 @@
 // Контроллер, связывающий движок в игру
 // пока я тут пишу тесты
 var ctx = new CustJS('my_game', {
-    'back': {
-        "auto_clear": false
+    'cells': {
+        "auto_clear": true
+    },
+    'decorations': {
+        "auto_clear": true
     },
     'main': {
         "auto_clear": true
     }
 
 });
-var kb = ctx.KeyBoard();
 
 ctx.create_scene('my_scene', function () {
-    var r = ctx.create_object(this, {
-            position: ctx.vector2(50, 50),
-            size: ctx.vector2(100, 100),
-            width: 100,
-            height: 100,
-            sprite: "",
-            layer: "main",
-            color:"black"
-        },
-        function () {
-            this.update = function () {
-                r.move(ctx.vector2(1, 0));
+
+    var turn_tracker;
+    this.init = function () {
+        var objects_on_field = [];
+        var players_on_field = [];
+        gameInitialize();
+        let current_player = getCurrentPlayerIndex();
+        var game_map = getGameMap();
+        for (let i = 0; i < mapWidth; i++)
+            for (let j = 0; j < mapHeight; j++) {
+                ctx.create_object(this, {
+                        position: ctx.vector2(game_map[[i, j]].x * 32 * MapScale, game_map[[i, j]].y * 32 * MapScale),
+                        size: ctx.vector2(32 * MapScale, 32 * MapScale),
+                        sprite: getCellType(gameMap[[i, j]].cellTypeID).sprite,
+                        layer: "cells",
+                        /*color: "black"*/
+                    },
+                    function () {
+                        this.update = function () {
+                        }
+                    });
+                if (gameMap[[i, j]].decorID)
+                    ctx.create_object(this, {
+                            position: ctx.vector2(game_map[[i, j]].x * 32 * MapScale, game_map[[i, j]].y * 32 * MapScale),
+                            size: ctx.vector2(32 * MapScale, 32 * MapScale),
+                            sprite: getDecoration(gameMap[[i, j]].decorID).sprite,
+                            layer: "decorations",
+                        },
+                        function () {
+                            this.update = function () {
+                            }
+                        });
+                if (gameMap[[i, j]].itemID)
+                    objects_on_field[i.toString() + j] = ctx.create_object(this, {
+                            position: ctx.vector2(game_map[[i, j]].x * 32 * MapScale, game_map[[i, j]].y * 32 * MapScale),
+                            size: ctx.vector2(32 * MapScale, 32 * MapScale),
+                            sprite: getItem(gameMap[[i, j]].itemID).sprite,
+                            layer: "decorations",
+                        },
+                        function () {
+                            this.update = function () {
+                            }
+                        });
+                if (gameMap[[i, j]].monsterID)
+                    objects_on_field[i.toString() + j] = ctx.create_object(this, {
+                            position: ctx.vector2(game_map[[i, j]].x * 32 * MapScale, game_map[[i, j]].y * 32 * MapScale),
+                            size: ctx.vector2(32 * MapScale, 32 * MapScale),
+                            sprite: getMonster(gameMap[[i, j]].monsterID).sprite,
+                            layer: "decorations",
+                        },
+                        function () {
+                            this.update = function () {
+                            }
+                        });
             }
-        }
-    );
-    var t = ctx.create_object(this, {
-            position: ctx.vector2(50, 50),
-            size: ctx.vector2(100, 100),
-            sprite:"assets/sprites/tile_grass.png",
-            layer: "back",
-            color:"green"
-        },
-        function () {
-            this.update = function () {
-                if(kb.isDown('W')){
-                    t.move(ctx.vector2(0,-1));
+        for (let i = 0; i < players.length ; i++)
+            players_on_field[i] = ctx.create_object(this, {
+                    position: players[i].fieldCoordinates,
+                    size: ctx.vector2(32 * MapScale, 32 * MapScale),
+                    sprite: "assets/sprites/player.png",
+                    layer: "main",
+                },
+                function () {
+                    this.update = function () {
+                    }
+                });
+        turn_tracker = new TurnTracker(() => {
+        }, () => {
+        });
+        turn_tracker.start();
+        window.addEventListener('keyup', function (e) {
+            current_player = turn_tracker.currentPlayerIndex;
+            if (current_player === turn_tracker.currentPlayerIndex) {
+                let x = players[current_player].cell.x;
+                let y = players[current_player].cell.y;
+                switch (e.code) {
+                    case 'KeyW':
+                        players[current_player].move(game_map[[x,--y]]);
+                        break;
+                    case 'KeyS':
+                        players[current_player].move(game_map[[x,++y]]);
+                        break;
+                    case 'KeyD':
+                        players[current_player].move(game_map[[++x,y]]);
+                        break;
+                    case 'KeyA':
+                        players[current_player].move(game_map[[--x,y]]);
+                        break;
                 }
             }
-        }
-    );
+        })
 
-    this.init = function () {
-        console.log('inited');
-        gameInitialize();
-        // ctx.get_layer('back').draw_object({x:10,y:10,width: 500,height: 300})
+
     };
     this.update = function () {
-       if( kb.isDown('UP'))
-           console.log('1');
-
-        console.log(r.isCollision(t))
+        turn_tracker.currentPlayerIndex// TODO сделать слежку камерой
     };
     this.draw = function () {
     };

@@ -4,13 +4,14 @@
 const isDebug = true;
 
 //(Model) Парметры карты
-const mapWidth = 10;
-const mapHeight = 10;
-const maxDecorCount = 25;
+const mapWidth = 30;
+const mapHeight = 30;
+const maxDecorCount = 10;
 const minDecorCount = 10;
-const itemCount = 15;
-const monsterCount = 20;
+const itemCount = 10;
+const monsterCount = 10;
 const AIPlayerCount = 1;
+const MapScale = 1;
 
 //(Model) Виды айтемов, позволяют понимать, что делать при их применении
 //Все нестандартные виды айтемов имеют свой отдельный тип

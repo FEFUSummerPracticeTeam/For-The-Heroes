@@ -1,21 +1,15 @@
 // Часть движка, осуществляющая отрисовку игры в канвасе
-var CustJS = function (_box,_layers) { // _box - поле в котором будут созадаваться canvases, _layers - слои которые передаются при создании движка(теперь их можно парсить)
+var CustJS = function (_box, _layers) { // _box - поле в котором будут созадаваться canvases, _layers - слои которые передаются при создании движка(теперь их можно парсить)
     'use strict'
     var CustJS = this;
 
 
-
-
-
     //GLOBALS//
-    var  size = null
-        ,canvas_offset = null
+    var size = null
+        , canvas_offset = null
         , running = false
         , active_scene = null
-        ,layer = null;
-
-
-
+        , layer = null;
 
 
     //INIT//
@@ -26,13 +20,12 @@ var CustJS = function (_box,_layers) { // _box - поле в котором бу
         canvas_offset = vector2(box.left, box.top); // смещение объекта
         size = vector2(box.width, box.height);
 
-        if(typeof _layers ==='object'){
-            var i,j=0;
-            for(i in _layers){
-                CustJS.create_layer(i,++j,!!_layers[i].auto_clear);
+        if (typeof _layers === 'object') {
+            var i, j = 0;
+            for (i in _layers) {
+                CustJS.create_layer(i, ++j, !!_layers[i].auto_clear);
             }
-        }
-        else {
+        } else {
             CustJS.create_layer('main', 0, true);
             CustJS.select_layer("main")
         }
@@ -40,44 +33,38 @@ var CustJS = function (_box,_layers) { // _box - поле в котором бу
 
 
     //MATH//
-    var is_int= function (num){// здесь будет проверка на число
+    var is_int = function (num) {// здесь будет проверка на число
         return num
     }
-
-
-
-
-
-
 
 
     //LAYERS//
     var layers = {};               // здесь будут лежать все слои
     var clear_layers = [];          // здесь будут лежать слои с авто очисткой
-    class Layer{                    // класс слоя в котором создается canvas в установленной коробке
+    class Layer {                    // класс слоя в котором создается canvas в установленной коробке
         constructor(index) {        // индекс для глубины слоя
             var cnv = document.createElement("canvas");
-            cnv.style.cssText = 'position: absolute; left: '+canvas_offset.x+'px;top: '+canvas_offset.y+'px;';
+            cnv.style.cssText = 'position: absolute; left: ' + canvas_offset.x + 'px;top: ' + canvas_offset.y + 'px;';
             cnv.width = size.x;
             cnv.height = size.y;
-            cnv.style.zIndex = 100+index;
+            cnv.style.zIndex = 100 + index;
             document.body.appendChild(cnv);
 
             this.canvas = cnv;
             this.context = cnv.getContext('2d');
         }
 
-        clear(){     // метод очистки слоя (выполняется в _update)
-            this.context.clearRect(0,0,size.x,size.y);
+        clear() {     // метод очистки слоя (выполняется в _update)
+            this.context.clearRect(0, 0, size.x, size.y);
         }
 
-        draw_object(p){ // метод рисования на слое
-            var dp = vp(p.x,p.y);
-            if(p.color){
+        draw_object(p) { // метод рисования на слое
+            var dp = vp(p.x, p.y);
+            if (p.color) {
                 this.context.fillStyle = p.color;
-                this.context.fillRect(dp.x,dp.y,p.width,p.height);
+                this.context.fillRect(dp.x, dp.y, p.width, p.height);
             }
-            if(p.file) {
+            if (p.file) {
                 if (!imgList[p.file]) return;
                 if (!imgList[p.file].loaded) return;
                 this.context.drawImage(imgList[p.file].image, dp.x, dp.y, p.width, p.height);
@@ -85,47 +72,41 @@ var CustJS = function (_box,_layers) { // _box - поле в котором бу
         }
     }
 
-    CustJS.create_layer = function (id, index,is_auto_clear ) {   // метод для создания слоя с id  для массива, индексом для глубины слоя и булевая переменная на авто очистку
-        if(layers[id])return
+    CustJS.create_layer = function (id, index, is_auto_clear) {   // метод для создания слоя с id  для массива, индексом для глубины слоя и булевая переменная на авто очистку
+        if (layers[id]) return
         layers[id] = new Layer(index);
-        if(is_auto_clear) clear_layers.push(layers[id]);
+        if (is_auto_clear) clear_layers.push(layers[id]);
     };
     CustJS.select_layer = function (id) {  // метод выбора слоя для рисования
-        if(!layers[id])return
+        if (!layers[id]) return
         layer = layers[id];
         return layer;
     };
     CustJS.get_layer = function (id) {
-        if(!layers[id])return
+        if (!layers[id]) return
         return layers[id];
     }
-
-
-
-
-
-
-
 
 
     //VECTORS//
     class Vector2 {  // класс сделанный для перемещения объектов с помощью векторной системы (из вне только через функцию ниже)
 
-    constructor (x, y) {
-        this.x = x;
-        this.y = y;
-    }
+        constructor(x, y) {
+            this.x = x;
+            this.y = y;
+        }
 
-    plus(v){
-        this.x+=v.x;
-        this.y+=v.y;
-        return this;
-    }
-    minus(v){
-        this.x-=v.x;
-        this.y-=v.y;
-        return this;
-    }
+        plus(v) {
+            this.x += v.x;
+            this.y += v.y;
+            return this;
+        }
+
+        minus(v) {
+            this.x -= v.x;
+            this.y -= v.y;
+            return this;
+        }
 
     }
 
@@ -134,33 +115,24 @@ var CustJS = function (_box,_layers) { // _box - поле в котором бу
     }
 
 
-
-
-
     //ENGINE//
-    var _update = function (){  // функция для обновления интерфейса (не для использования из вне)
+    var _update = function () {  // функция для обновления интерфейса (не для использования из вне)
         active_scene.update();
-        for(let i in clear_layers)
+        for (let i in clear_layers)
             clear_layers[i].clear();
         active_scene.draw_objects();
         active_scene.draw();
 
-        if(running) requestAnimationFrame(_update);
+        if (running) requestAnimationFrame(_update);
     }
 
 
     this.start = function (name) {  // функция  для старта сцены (для работы программиста из вне)
         if (running) return
         running = CustJS.set_scene(name);
-        if(running)
+        if (running)
             _update();
     };
-
-
-
-
-
-
 
 
     //SCENES//
@@ -181,7 +153,7 @@ var CustJS = function (_box,_layers) { // _box - поле в котором бу
 
         update() {
             this.scene.update();
-            for(let i in this.scene.nodes) this.scene.nodes[i].update();
+            for (let i in this.scene.nodes) this.scene.nodes[i].update();
         }
 
         exit() {
@@ -197,7 +169,7 @@ var CustJS = function (_box,_layers) { // _box - поле в котором бу
     }
 
     this.create_scene = function (name, Construct) { // функция для создания сцены из вне
-        if(scenes[name]) return;
+        if (scenes[name]) return;
         scenes[name] = new Scene(new Construct);
     }
     this.set_scene = function (name) {              // функция для смены сцены (передается имя сцены, по которому извлекается из массива)
@@ -212,89 +184,92 @@ var CustJS = function (_box,_layers) { // _box - поле в котором бу
     }
 
 
-
-
-
-
     //OBJECTS//
     class object {
-        constructor(p,construct) {
+        constructor(p, construct) {
             this.obj = construct;
             this.position = p.position;
             this.size = p.size;
             this.color = p.color;
             this.sprite = false;
-            this.layer = p.layer || "main" ;
+            this.layer = p.layer || "main";
 
-            if(p.sprite){
-                this.sprite=p.sprite;
+            if (p.sprite) {
+                this.sprite = p.sprite;
                 LoadImage(p.sprite);
             }
         }
 
         draw() {
-            layers[this.layer].draw_object({
-                x:this.position.x,
-                y:this.position.y,
-                width: this.size.x,
-                height: this.size.y,
-                color: this.color,
-                file: this.sprite
-            })
+            if (this.IsInView()) {
+                layers[this.layer].draw_object({
+                    x: this.position.x,
+                    y: this.position.y,
+                    width: this.size.x,
+                    height: this.size.y,
+                    color: this.color,
+                    file: this.sprite
+                })
+            }
         }
-        move(p){
+
+        move(p) {
             this.position.plus(p);// тк это вектор
         }
-        update(){   // функция которая берет функцию написанную как параметр при создании данного объекта
+
+        update() {   // функция которая берет функцию написанную как параметр при создании данного объекта
             this.obj.update();
         }
-        isCollision(obj){
-            return !(this.position.x+this.size.x < obj.position.x ||
-                     this.position.y+this.size.y < obj.position.y ||
-                     this.position.x > obj.position.x+obj.size.x ||
-                     this.position.y > obj.position.y + obj.size.y);
+
+        isCollision(obj) {
+            return !(this.position.x + this.size.x < obj.position.x ||
+                this.position.y + this.size.y < obj.position.y ||
+                this.position.x > obj.position.x + obj.size.x ||
+                this.position.y > obj.position.y + obj.size.y);
+        }
+
+        IsInView() {
+            return this.position.x + this.size.x + canvas_offset.x > canvas_offset.x &&
+                this.position.y + canvas_offset.y > canvas_offset.y &&
+                this.position.x + canvas_offset.x < canvas_offset.x + size.x &&
+                this.position.y + this.size.y + canvas_offset.y < canvas_offset.y + size.y;
         }
     }
 
-    var create_object = function (p,Constructor) {
-        return new object( p,new Constructor());
+    var create_object = function (p, Constructor) {
+        return new object(p, new Constructor());
     }
-    this.create_object = function (scene, params,update) { // функция для создания объектов на сцене для использования из вне
+    this.create_object = function (scene, params, update) { // функция для создания объектов на сцене для использования из вне
         if (typeof scene.nodes === "undefined")
             var nds = scene.nodes = [];
         var nds = scene.nodes;
-        let obj = create_object(params,update)
+        let obj = create_object(params, update)
         nds.push(obj)
         return obj;
     }
 
 
-
-
-        //VIEWPORT//
+    //VIEWPORT//
     var view = CustJS.view = new function () {  // работа с камерой
-        this.position= vector2(0,0);
+        this.position = vector2(0, 0);
 
-        this.move= function (v) { // двигаем камеру
+        this.move = function (v) { // двигаем камеру
             this.position.plus(v)
         }
     };
-    var vp = function (x,y) {          // расчет смещения объектов  относительно камеры
-        return vector2(x,y).minus(view.position);
+    var vp = function (x, y) {          // расчет смещения объектов  относительно камеры
+        return vector2(x, y).minus(view.position);
     };
 
 
-
-
-
     //IMAGE_LOAD//
-    var imgList ={};                    // создаем хранилище спрайтов
+    var imgList = {};                    // создаем хранилище спрайтов
     var LoadImage = function (file) {
-        if(imgList[file])return;  // проверяем загрузили ли мы уже этот спрайт
+        if (imgList[file]) return;  // проверяем загрузили ли мы уже этот спрайт
 
         var image = document.createElement('img');
 
-        imgList[file]={
+        imgList[file] = {
             loaded: false,
             image: image
         };
@@ -306,52 +281,49 @@ var CustJS = function (_box,_layers) { // _box - поле в котором бу
         };
         image.src = file;
     };
-    
-    
+
+
     //KEYBOARD//
 
     var kbInited = false;
-    this.KeyBoard = function(){
-        if(kbInited) return; // проверяем создана ли уже клавиатура
-        kbInited =true;
+    this.KeyBoard = function () {
+        if (kbInited) return; // проверяем создана ли уже клавиатура
+        kbInited = true;
 
         var keys = {  // создаем пул кнопок
             'UP': 'ArrowUp',
             'DOWN': 'ArrowDown',
-            'LEFT':'ArrowLeft',
-            'RIGHT':'ArrowRight',
-            'W':'KeyW',
-            'A':'KeyA',
-            'S':'KeyS',
-            'D':'KeyD',
-            'E':'KeyE',
-            'Q':'KeyQ',
-            'SHIFT':'ShiftLeft',
-            'CTRL':'ControlLeft',
-            'SPACE':'Space'
+            'LEFT': 'ArrowLeft',
+            'RIGHT': 'ArrowRight',
+            'W': 'KeyW',
+            'A': 'KeyA',
+            'S': 'KeyS',
+            'D': 'KeyD',
+            'E': 'KeyE',
+            'Q': 'KeyQ',
+            'SHIFT': 'ShiftLeft',
+            'CTRL': 'ControlLeft',
+            'SPACE': 'Space'
         };
 
 
-        var pressedKeys={};   // создаем хранилище кнопок где будем хранитить их состояние(нажата или нет)
-        window.addEventListener('keydown',function (e){
-            pressedKeys[e.code]=true;
+        var pressedKeys = {};   // создаем хранилище кнопок где будем хранитить их состояние(нажата или нет)
+        window.addEventListener('keydown', function (e) {
+            pressedKeys[e.code] = true;
         })
-        window.addEventListener('keyup',function (e){
-            pressedKeys[e.code]=false;
+        window.addEventListener('keyup', function (e) {
+            pressedKeys[e.code] = false;
         })
 
         var kb = {
-            isDown: function (keyName){ // функция которая по имени клавиши если она нажата вернет True
-                return !! pressedKeys[keys[keyName]];
+            isDown: function (keyName) { // функция которая по имени клавиши если она нажата вернет True
+                return !!pressedKeys[keys[keyName]];
             }
         };
         return kb;
     }
-    
-    
-    
-    
-    
+
+
     _INIT();
     window.CustJSGlobal = CustJS;
 

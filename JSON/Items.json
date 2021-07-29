@@ -32,7 +32,7 @@
     "name": "Файрбол",
     "type": "Magic",
     "value": "20",
-    "sprite": "magic_fireball.png"
+    "sprite": "assets/sprites/magic_fireball.png"
   },
   {
     "ID": 5,

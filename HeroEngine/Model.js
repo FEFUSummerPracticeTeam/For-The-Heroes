@@ -40,12 +40,13 @@ function gameInitialize(gameCallback) {
             players[i] = new Player('AI ' + i, true);
         }
     }
+    for (let i of players) i.move ( gameMap [[randomRangeInt(0, mapWidth), randomRangeInt(0, mapWidth)]]);
+
     addEventCallback(gameCallback);
 }
 
 class Player {
-    x; //Позиция в тайлах
-    y;
+    fieldCoordinates= {x:undefined,y:undefined};
 
     //начальные значения потом изменю
     constructor(name, isAI) {
@@ -159,7 +160,10 @@ class Player {
         this.cell = cell;
         this.x = cell.x;
         this.y = cell.y;
+        this.fieldCoordinates.x=this.cell.x*32*MapScale;
+        this.fieldCoordinates.y=this.cell.y*32*MapScale;
     }
+
 
     //Получение айтема игроком
     //Принимает: item - объект типа Item
@@ -348,7 +352,7 @@ class Item {
                         //TODO
                         break;
                     case "Создание оружия": //создает случайное оружие
-                                            //TODO
+                        //TODO
                         break;
                     ////////////////////////////////////////////////////////////////
                 }
