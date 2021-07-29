@@ -29,7 +29,7 @@ ctx.create_scene('my_scene', function () {
                         size: ctx.vector2(32 * MapScale, 32 * MapScale),
                         sprite: getCellType(gameMap[[i, j]].cellTypeID).sprite,
                         layer: "cells",
-                        /*color: "black"*/
+                        color: "black"
                     },
                     function () {
                         this.update = function () {
@@ -80,10 +80,12 @@ ctx.create_scene('my_scene', function () {
                     this.update = function () {
                     }
                 });
+
         turn_tracker = new TurnTracker(() => {
         }, () => {
         });
         turn_tracker.start();
+        ctx.view.move(players[turn_tracker.currentPlayerIndex].fieldCoordinates);
         window.addEventListener('keyup', function (e) {
             current_player = turn_tracker.currentPlayerIndex;
             if (current_player === turn_tracker.currentPlayerIndex) {
@@ -92,24 +94,27 @@ ctx.create_scene('my_scene', function () {
                 switch (e.code) {
                     case 'KeyW':
                         players[current_player].move(game_map[[x,--y]]);
+                        console.log(e.code)
                         break;
                     case 'KeyS':
-                        players[current_player].move(game_map[[x,++y]]);
+                        players[current_player].move(game_map[[x,++y]]);console.log(e.code)
                         break;
                     case 'KeyD':
-                        players[current_player].move(game_map[[++x,y]]);
+                        players[current_player].move(game_map[[++x,y]]);console.log(e.code)
                         break;
                     case 'KeyA':
-                        players[current_player].move(game_map[[--x,y]]);
+                        players[current_player].move(game_map[[--x,y]]);console.log(e.code)
                         break;
                 }
+                ctx.view.move(players[current_player].fieldCoordinates);
             }
         })
 
 
     };
     this.update = function () {
-        turn_tracker.currentPlayerIndex// TODO сделать слежку камерой
+        // TODO сделать слежку камерой
+
     };
     this.draw = function () {
     };

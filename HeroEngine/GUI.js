@@ -201,7 +201,7 @@ var CustJS = function (_box, _layers) { // _box - поле в котором б�
         }
 
         draw() {
-            if (this.IsInView()) {
+            if (this.IsInView()) {//todo
                 layers[this.layer].draw_object({
                     x: this.position.x,
                     y: this.position.y,
@@ -229,10 +229,10 @@ var CustJS = function (_box, _layers) { // _box - поле в котором б�
         }
 
         IsInView() {
-            return this.position.x + this.size.x + canvas_offset.x > canvas_offset.x &&
-                this.position.y + canvas_offset.y > canvas_offset.y &&
-                this.position.x + canvas_offset.x < canvas_offset.x + size.x &&
-                this.position.y + this.size.y + canvas_offset.y < canvas_offset.y + size.y;
+            return (this.position.x + this.size.x > view.position.x - size.x ) &&
+                (this.position.y + this.size.y   > view.position.y - size.y )  &&
+                (this.position.x  < view.position.x + size.x ) &&
+                (this.position.y  < view.position.y + size.y )
         }
     }
 
@@ -248,13 +248,13 @@ var CustJS = function (_box, _layers) { // _box - поле в котором б�
         return obj;
     }
 
-
     //VIEWPORT//
     var view = CustJS.view = new function () {  // работа с камерой
         this.position = vector2(0, 0);
 
         this.move = function (v) { // двигаем камеру
-            this.position.plus(v)
+            this.position.x = v.x - size.x / 2 > 0 ? v.x - size.x / 2 : this.position.x;
+            this.position.y = v.y - size.y / 2 > 0 ? v.y - size.y / 2 : this.position.y;
         }
     };
     var vp = function (x, y) {          // расчет смещения объектов  относительно камеры
