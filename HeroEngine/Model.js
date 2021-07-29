@@ -263,27 +263,32 @@ function doAITurn(player) {
     let d = 0;
     let visited = new Map();
     queue.enqueue(player.cell);
-    while (!queue.isEmpty()) {
-        let u = queue.dequeue();
-        let xy = {x: -3, y: -3}
-        for (let i = 0; i < 4; i++) {
-            xy.y++;
-            if (xy.y === 2) {
-                xy.y = 0;
-                xy.x++;
-            }
-            let x = u.x - xy.x;
-            let y = u.y - xy.y;
-            if (inBounds(x, y, mapWidth, mapHeight)) {
-                if (gameMap[x][y].cell.item !== undefined) {
-
-                } else if (gameMap[x][y].cell) {
-
+    let targetCell = undefined;
+    loop:
+        while (!queue.isEmpty()) {
+            let u = queue.dequeue();
+            let xy = {x: -3, y: -3}
+            for (let i = 0; i < 4; i++) {
+                xy.y++;
+                if (xy.y === 2) {
+                    xy.y = 0;
+                    xy.x++;
+                }
+                let x = u.x - xy.x;
+                let y = u.y - xy.y;
+                if (inBounds(x, y, mapWidth, mapHeight)) {
+                    if (gameMap[x][y].cell.item !== undefined) {
+                        targetCell = gameMap[x][y].cell;
+                        break loop;
+                    } else if (gameMap[x][y].cell) {
+                        targetCell = gameMap[x][y].cell;
+                        break loop;
+                    }
                 }
             }
         }
-    }
     //BFS END
+
 }
 
 //Абстракция айтемов игры
@@ -371,15 +376,17 @@ class TurnTracker {
     timePerTurn;
     timeLeft;
     currentInterval;
+    currentPlayerIndex; //хранит индекс в массиве того, чей будет ход
 
-    constructor(onTurnStartCallback, onTurnEndCallback) { //в обоих случаях передаётся ID того, чей был/будет ход
+    constructor(onTurnStartCallback, onTurnEndCallback) { //хранит индекс в массиве того, чей был/будет ход
         this.onTurnStartCallback = onTurnStartCallback;
         this.onTurnEndCallback = onTurnEndCallback;
         this.timePerTurn = 60 / players.length;
     }
 
     start() {
-        this.onTurnStartCallback(this.turnCnt % players.length);
+        this.currentPlayerIndex = this.turnCnt % players.length;
+        this.onTurnStartCallback(this.currentPlayerIndex);
         this.timeLeft = this.timePerTurn;
         this.currentInterval = setInterval(() => {
             this.timeLeft--;
@@ -391,7 +398,8 @@ class TurnTracker {
 
     finishTurn() {
         window.clearInterval(this.currentInterval)
-        this.onTurnEndCallback(this.turnCnt % players.length);
+        this.currentPlayerIndex = this.turnCnt % players.length;
+        this.onTurnEndCallback(this.currentPlayerIndex);
         this.turnCnt++;
     }
 }
@@ -462,7 +470,6 @@ class MapGenerator {
         let bestDiff;
         let bestDiffID;
         for (const cellType of cellTypeList.values()) {
-            console.log(height);
             if (height >= cellType.value[0] && moisture >= cellType.value[1] && heat >= cellType.value[2]) {
                 let diff = (height - cellType.value[0]) + (moisture - cellType.value[1]) + (heat - cellType.value[2]);
                 if (bestDiffID === undefined) {
