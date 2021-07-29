@@ -40,5 +40,33 @@
     "type": "Magic",
     "value": "25",
     "sprite": ""
+  },
+  {
+    "ID": 6,
+    "name": "Молния",
+    "type": "Magic",
+    "value": "30",
+    "sprite": ""
+  },
+  {
+    "ID": 7,
+    "name": "Невидимость",
+    "type": "Magic",
+    "value": "35",
+    "sprite": ""
+  },
+  {
+    "ID": 8,
+    "name": "Создание ловушки",
+    "type": "Magic",
+    "value": "40",
+    "sprite": ""
+  },
+  {
+    "ID": 9,
+    "name": "Создание оружия",
+    "type": "Magic",
+    "value": "60",
+    "sprite": ""
   }
 ]

@@ -61,9 +61,9 @@ class Player {
         this.power = 10;
         this.armour = 0; //броня
         this.intelligence = 0; //магическая сила (процент, на который увеличивается урон от заклинаний)
-        this.agility = 1; //ловкость
         this.speed = 1;
-        this.fortune = 1;
+        //this.agility = 1; //ловкость
+        //this.fortune = 1;
         this.items = new Map(); //Map айтемов игрока, хранит количество по ключам объектов Item
         this.cell = null; //объект Cell, на котором стоит данный игрок
         this.isAI = isAI; //Является ли этот игрок ботом
@@ -141,6 +141,14 @@ class Player {
         this.isDead();
     }
 
+    hitPlayer(damage, enemy) {
+        enemy.getDamage(damage);
+    }
+
+    hitMonster(damage, monster) {
+        monster.getDamage(damage, this);
+    }
+
     //функция ускорения или замедления (percent < 0) игрока
     getSpeed(percent) {
         this.speed *= (1 + percent / 100);
@@ -178,11 +186,22 @@ class Player {
         return false; //выдать ошибку "не хватает маны"
     }
 
-    regeneration() {
-        this.getHealth(10);
+    increaseDueToIntelligence(value) {
+        return value * (1 + this.intelligence / 100);
     }
 
+    regeneration() {
+        let health = this.increaseDueToIntelligence(10);
+        this.getHealth(health);
+    }
 
+    fireball(enemy) {
+        let damage = this.increaseDueToIntelligence(20);
+        this.hitPlayer(damage, enemy);
+        //enemy должен потратить действие, чтобы затушить себя
+    }
+
+    
     /* ----------------------------------------------------------------
                           прокачка персонажа
     ---------------------------------------------------------------- */
@@ -283,10 +302,22 @@ class Item {
             case ItemTypes.Magic:
                 if (!player.isEnoughMana(this.value)) break;
                 switch (this.name) {
-                    case "Регенерация":
+                    case "Лечение":
                         player.regeneration();
                         break;
-                    case "Невидимость":
+                    case "Файрбол": 
+                        player.fireball(enemy);
+                        break;
+                    case "Молния": //у противника меньше времени на свой ход
+                        //TODO
+                        break;
+                    case "Невидимость": //дается на рассчитываемое по формуле время и исчезает при атаке                    
+                        //TODO
+                        break;
+                    case "Создание ловушки": //создает клетку с отрицательным эффектом
+                        //TODO
+                        break;
+                    case "Создание оружия": //создает случайное оружие
                         //TODO
                         break;
                     ////////////////////////////////////////////////////////////////
