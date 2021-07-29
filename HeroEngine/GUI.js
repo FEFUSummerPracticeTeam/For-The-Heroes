@@ -283,47 +283,6 @@ var CustJS = function (_box, _layers) { // _box - поле в котором б�
     };
 
 
-    //KEYBOARD//
-
-    var kbInited = false;
-    this.KeyBoard = function () {
-        if (kbInited) return; // проверяем создана ли уже клавиатура
-        kbInited = true;
-
-        var keys = {  // создаем пул кнопок
-            'UP': 'ArrowUp',
-            'DOWN': 'ArrowDown',
-            'LEFT': 'ArrowLeft',
-            'RIGHT': 'ArrowRight',
-            'W': 'KeyW',
-            'A': 'KeyA',
-            'S': 'KeyS',
-            'D': 'KeyD',
-            'E': 'KeyE',
-            'Q': 'KeyQ',
-            'SHIFT': 'ShiftLeft',
-            'CTRL': 'ControlLeft',
-            'SPACE': 'Space'
-        };
-
-
-        var pressedKeys = {};   // создаем хранилище кнопок где будем хранитить их состояние(нажата или нет)
-        window.addEventListener('keydown', function (e) {
-            pressedKeys[e.code] = true;
-        })
-        window.addEventListener('keyup', function (e) {
-            pressedKeys[e.code] = false;
-        })
-
-        var kb = {
-            isDown: function (keyName) { // функция которая по имени клавиши если она нажата вернет True
-                return !!pressedKeys[keys[keyName]];
-            }
-        };
-        return kb;
-    }
-
-
     _INIT();
     window.CustJSGlobal = CustJS;
 

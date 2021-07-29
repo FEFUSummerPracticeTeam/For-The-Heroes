@@ -284,15 +284,25 @@ function doAITurn(player) {
                     if (gameMap[x][y].cell.item !== undefined) {
                         targetCell = gameMap[x][y].cell;
                         break loop;
-                    } else if (gameMap[x][y].cell) {
-                        targetCell = gameMap[x][y].cell;
-                        break loop;
+                    } else {
+                        for (const player of players) {
+                            if (player.cell === gameMap[x][y].cell) {
+                                targetCell = gameMap[x][y].cell;
+                                break loop;
+                            }
+                        }
                     }
                 }
             }
+            //BFS END
         }
-    //BFS END
-
+    for (let i = 0; i < player.speed; i++) {
+        if (player.x !== targetCell.x) {
+            player.x += targetCell.x < player.x ? -1 : 1;
+        }else if(player.y !== targetCell.y){
+            player.y += targetCell.y < player.y ? -1 : 1;
+        }
+    }
 }
 
 //Абстракция айтемов игры
@@ -421,8 +431,7 @@ class MapGenerator {
                 gameMap[[x, y]] = new Cell(x, y, this.getBiomeID(heightMap[[x, y]], moistureMap[[x, y]], heatMap[[x, y]]));
             }
         }
-        let decorCnt = randomRangeInt(minDecorCount, maxDecorCount);
-        for (let i = 0; i < decorCnt; i++) {
+        for (let i = 0; i < decorCount; i++) {
             let cell = gameMap[[randomRangeInt(0, mapWidth), randomRangeInt(0, mapHeight)]];
             let cellType = getCellType(cell.cellTypeID);
             cell.decorID = cellType.decor[randomRangeInt(0, cellType.decor.length)];

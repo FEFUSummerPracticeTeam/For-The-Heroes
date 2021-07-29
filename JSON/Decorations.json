@@ -52,5 +52,11 @@
     "name": "Пальма",
     "type": "Decoration",
     "sprite": "assets/sprites/dec_palm.png"
+  },
+  {
+    "ID": 9,
+    "name": "Пень",
+    "type": "Decoration",
+    "sprite": "assets/sprites/dec_stump.png"
   }
 ]

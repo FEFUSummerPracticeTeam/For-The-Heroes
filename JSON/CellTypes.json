@@ -4,12 +4,13 @@
     "decor": [
       0,
       1,
-      2
+      2,
+      9
     ],
     "value": [
       0.2,
-      0,
-      0.5
+      0.5,
+      0.3
     ],
     "sprite": "assets/sprites/tile_grass.png"
   },
@@ -21,37 +22,51 @@
       5
     ],
     "value": [
-      0.2,
-      0.4,
-      0.4
+      0,
+      0,
+      0
     ],
-    "sprite": "assets/sprites/tile_snow.png"
+    "sprite": "assets/sprites/tile_ice.png"
   },
   {
     "ID": 2,
-    "decor": [
-      6
-    ],
-    "value": [
-      0.2,
-      0.5,
-      0.3
-    ],
-    "sprite": "assets/sprites/tile_grass_aki.png"
-  },
-  {
-    "ID": 3,
     "decor": [
       7,
       8
     ],
     "value": [
-      0,
+      0.3,
+      0.5,
+      0.55
+    ],
+    "sprite": "assets/sprites/tile_sand.png"
+  },
+  {
+    "ID": 3,
+    "decor": [
+      3,
+      4,
+      5
+    ],
+    "value": [
+      0.5,
       0,
       0
     ],
-    "sprite": "assets/sprites/tile_sand.png"
+    "sprite": "assets/sprites/tile_snow.png"
+  },
+  {
+    "ID": 4,
+    "decor": [
+      2,
+      6,
+      9
+    ],
+    "value": [
+      0.2,
+      0,
+      0.5
+    ],
+    "sprite": "assets/sprites/tile_grass_aki.png"
   }
 ]
-  
-  

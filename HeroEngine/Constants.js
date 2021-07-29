@@ -6,8 +6,7 @@ const isDebug = true;
 //(Model) Парметры карты
 const mapWidth = 30;
 const mapHeight = 30;
-const maxDecorCount = 10;
-const minDecorCount = 10;
+const decorCount = (mapHeight * mapWidth) / 18;
 const itemCount = 10;
 const monsterCount = 10;
 const AIPlayerCount = 1;
@@ -46,8 +45,8 @@ const commands = {
 }
 
 //(Model) Константы для генератора шума
-const heightWaves = [{seed: 53, frequency: 5, amplitude: 5}, {seed: 199.36, frequency: 1, amplitude: 0.5}]
+const heightWaves = [{seed: 53, frequency: 0.05, amplitude: 1}, {seed: 199.36, frequency: 0.1, amplitude: 0.5}]
 const moistureWaves = [{seed: 621, frequency: 0.03, amplitude: 1}]
 const heatWaves = [{seed: 318.6, frequency: 0.04, amplitude: 1}, {seed: 329.7, frequency: 0.02, amplitude: 0.5}]
-const mapNoiseScale = 1;
-const sampleOffset = {x: 1, y: 1};
+const mapNoiseScale = 1.5;
+const sampleOffset = {x: 0, y: 0};
