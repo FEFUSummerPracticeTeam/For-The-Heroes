@@ -19,12 +19,14 @@ export function launch() {
                 size: 50,
                 position: ctx.vector2(ctx.size.x / 2, ctx.size.y / 2),
                 text: 'Введите имя',
+                anchor: 1,
                 color: 'black'
             });
             ctx.create_object(this, {
                 position: ctx.vector2(150, 150),
                 size: 30,
-                text: '123',
+                text: name,
+                anchor: 1,
                 color: 'black'
             });
             window.addEventListener('keydown', (event) => {

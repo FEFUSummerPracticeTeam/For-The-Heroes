@@ -64,7 +64,7 @@ var CustJS = function (_box, _layers) { // _box - поле в котором б�
         }
 
         draw_object(p) { // метод рисования на слое
-            this.context.globalAlpha=p.opacity;
+            this.context.globalAlpha = p.opacity;
             var dp = vp(p.x, p.y);
             if (p.color) {
                 this.context.fillStyle = p.color;
@@ -75,18 +75,18 @@ var CustJS = function (_box, _layers) { // _box - поле в котором б�
                 if (!imgList[p.file].loaded) return;
                 this.context.drawImage(imgList[p.file].image, dp.x, dp.y, p.width, p.height);
             }
-            this.context.globalAlpha=1;
+            this.context.globalAlpha = 1;
         }
 
         draw_text(p) {
-            this.context.globalAlpha=p.opacity;
+            this.context.globalAlpha = p.opacity;
             if (p.font || p.size)
                 this.context.font = (p.size || config.font_size) + "px " + (p.font || config.font_name);
             if (p.color) {
                 this.context.fillStyle = p.color;
                 this.context.fillText(p.text, p.x, p.y,)
             }
-            this.context.globalAlpha=1;
+            this.context.globalAlpha = 1;
         }
     }
 
@@ -210,14 +210,18 @@ var CustJS = function (_box, _layers) { // _box - поле в котором б�
             this.update = update;
             this.position = p.position;
             this.size = p.size;
+            if (p.anchor !== undefined) {
+                this.position.x -= (this.size.x !== undefined ? this.size.x : this.size);
+                this.position.y -= (this.size.y !== undefined ? this.size.y : this.size);
+            }
             this.color = p.color;
             this.sprite = false;
             this.layer = p.layer || "main";
             this.obj = p.obj;
             this.id = object_id++;
             this.isDying = false;
-            this.opacity = p.opacity||1;
-            this.death_speed = p.death_speed||1;
+            this.opacity = p.opacity || 1;
+            this.death_speed = p.death_speed || 1;
 
             if (p.sprite) {
                 this.sprite = p.sprite;
@@ -246,7 +250,7 @@ var CustJS = function (_box, _layers) { // _box - поле в котором б�
                             height: this.size.y,
                             color: this.color,
                             file: this.sprite,
-                            opacity:this.opacity
+                            opacity: this.opacity
                         })
                     } else {
                         this.position = vector2(-1000, -1000);
@@ -295,7 +299,7 @@ var CustJS = function (_box, _layers) { // _box - поле в котором б�
                 size: this.size,
                 color: this.color,
                 text: this.text,
-                opacity:this.opacity
+                opacity: this.opacity
             })
 
         }
