@@ -200,7 +200,6 @@ class Player {
     fireball(enemy) {
         let damage = this.increaseDueToIntelligence(20);
         this.hitPlayer(damage, enemy);
-        //enemy должен потратить действие, чтобы затушить себя
     }
 
 
@@ -352,19 +351,13 @@ class Item {
                     case "Файрбол":
                         player.fireball(enemy);
                         break;
-                    case "Молния": //у противника меньше времени на свой ход
-                        //TODO
-                        break;
-                    case "Невидимость": //дается на рассчитываемое по формуле время и исчезает при атаке
-                        //TODO
-                        break;
-                    case "Создание ловушки": //создает клетку с отрицательным эффектом
-                        //TODO
-                        break;
                     case "Создание оружия": //создает случайное оружие
-                                            //TODO
+                        let randomWeaponsList = itemTypeList.filter(item => item.type === "Weapon");
+                        let randomWeapon = () => {
+                            return randomWeaponsList[Math.floor(Math.random() * randomWeaponsList.length)]
+                        }
+                        player.pickItem(randomWeapon())
                         break;
-                    ////////////////////////////////////////////////////////////////
                 }
                 break;
         }
