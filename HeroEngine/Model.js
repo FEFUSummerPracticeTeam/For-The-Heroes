@@ -1,5 +1,7 @@
 // Часть движка, содержащая абстракции для всех логических элементов игры
 
+//Выбранное игроком имя
+let playerName = ''
 //Array{Player} на карте в порядке, определённым firebase'ом или же игроком (в случае ИИ)
 let players = []
 //Array типов айтемов, ключ - ID, инициализируется при вызове parseItems(), получать через getItem(id)
@@ -271,7 +273,6 @@ function doAITurn(player) {
     loop:
         while (!queue.isEmpty()) {
             let u = queue.dequeue();
-            let xy = {x: -3, y: -3};
             let mods = [[0, 1], [1, 0], [-1, 0], [0, -1]];
             for (let i = 0; i < 4; i++) {
                 let x = u.x + mods[i][0];

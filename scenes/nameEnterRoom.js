@@ -26,24 +26,37 @@ export function launch(ctx) {
                 alignment: 'center',
                 color: 'black'
             });
-            window.addEventListener('keydown', (event) => {
+            window.onkeydown = (event) => {
                 let key = event.key;
                 if (name.length <= 8) name += key.length === 1 ? key : '';
                 if (key === 'Backspace') {
                     name = name.slice(0, name.length > 0 ? name.length - 1 : 0);
                 } else if (key === 'Enter') {
                     if (name.length !== 0) {
-                        ctx.set_scene('lobbyRoom', 'created');
+                        if (args === undefined) {
+                            playerName = name;
+                            ctx.set_scene('lobbySelectRoom');
+                        } else {
+                            createLobby(name, (lobby) => {
+                                let once = true;
+                                joinLobby(playerName, lobby.id, undefined, () => {
+                                    if(once){
+                                        ctx.set_scene('lobbySelectRoom', true);
+                                        once = false;
+                                    }
+                                });
+                            });
+                        }
                     }
                 }
-            });
+            };
         };
         this.update = () => {
         };
         this.draw = () => {
         };
         this.exit = () => {
-
+            window.onkeydown = null;
         };
 
     });

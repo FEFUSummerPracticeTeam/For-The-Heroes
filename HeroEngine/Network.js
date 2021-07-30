@@ -4,6 +4,8 @@
 let lobbyList = [];
 //ID этого игрока, чтобы не слать коллбеки на его ивенты, получение: getPlayerID()
 let playerID;
+//Сам объект лобби, в котором мы находимся
+let joinedLobby;
 //ID лобби, чтобы не передавать его каждый раз, получение: getLobbyID()
 let lobbyID;
 //Список игроков в лобби, чтобы повесить на каждого соотв. коллбек, получение: getLobbyPlayers()
@@ -34,6 +36,7 @@ function createLobby(lobbyName, onLobbyCreatedListener) {
     };
     lobbyRef.set(lobby, () => {
         if (onLobbyCreatedListener !== undefined) {
+            lobbyList.push(lobby);
             onLobbyCreatedListener(lobby);
         }
     });
@@ -47,18 +50,24 @@ function joinLobby(playerName, lobbyID, onNewCommandListener, onNewConnectionLis
     let playerRef = database.ref('players/' + lobbyID).push();
     playerID = playerRef.key;
     playerRef.set({name: playerName, id: playerID});
+    onNewCommandListener !== undefined ? addEventCallback(onNewCommandListener) : null;
+    addEventCallback(cmdHandler);
+    bindOfflineAction();
     database.ref('players/' + lobbyID).on('value', (snapshot) => {
         let response = snapshot.val();
         lobbyPlayers = response === null ? [] : Object.values(response);
         lobbyPlayers.sort((p1, p2) => {
             return p1.id.localeCompare(p2.id);
         });
+        for (const lobby of lobbyList) {
+            if (lobby.id === lobbyID) {
+                joinedLobby = lobby;
+                break;
+            }
+        }
         if (onNewConnectionListener !== undefined) {
             onNewConnectionListener(getLobbyPlayers());
         }
-        addEventCallback(onNewCommandListener);
-        addEventCallback(cmdHandler);
-        bindOfflineAction();
     });
     return playerID;
 }
@@ -77,7 +86,15 @@ function refreshLobbies(onRefreshDoneListener) {
     });
 }
 
-//Очистка старых лобби (старее чем сутки) (запускать только после хотя бы одного refreshLobbies())
+//Выход из лобби
+//Принимает: void
+//Возвращает: void
+function leaveLobby() {
+    if (lobbyPlayers.length === 1) database.ref('lobbies/' + lobbyID).remove();
+    database.ref('players/' + lobbyID + '/' + playerID).remove();
+}
+
+//Очистка старых лобби (старее чем полчаса) (запускать только после хотя бы одного refreshLobbies())
 //Принимает: void
 //Возвращает: void
 function cleanOldLobbies() {
@@ -87,7 +104,7 @@ function cleanOldLobbies() {
     varRef.once('value', (snapshot) => {
         let result = snapshot.val();
         if (result != null) {
-            const oneDay = 24 * 60 * 60 * 1000;
+            const oneDay = 0.5 * 60 * 60 * 1000;
             if ((timestamp - result) > oneDay) {
                 needsWriting = true;
                 for (const lobby of lobbyList) {
@@ -182,11 +199,12 @@ function addEventCallback(callback) {
 //Принимает: пакет Object с данными согласно описанию в Constants.js
 //Возвращает: void
 function makeEvent(data) {
-    try{
+    try {
         let eventRef = database.ref('events/' + lobbyID + '/' + playerID).push();
         data.eventKey = eventRef.key;
         eventRef.set(data);
-    }catch (e){} //мы оффлайн
+    } catch (e) {
+    } //мы оффлайн
 
 }
 
@@ -201,7 +219,9 @@ function cleanCachedEvents() {
 //Принимает: void
 //Возвращает: void
 function bindOfflineAction() {
-    database.ref('events/' + lobbyID + '/' + playerID).onDisconnect().push().set({
+    let ref = database.ref('events/' + lobbyID + '/' + playerID);
+    let key = ref.push().key;
+    database.ref('events/' + lobbyID + '/' + playerID + '/' + key).onDisconnect().set({
         cmdID: commands.Disconnected,
     });
 }

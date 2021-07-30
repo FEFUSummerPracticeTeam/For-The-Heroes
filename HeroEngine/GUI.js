@@ -180,6 +180,7 @@ var CustJS = function (_box, _layers) { // _box - поле в котором б�
         }
 
         exit() {
+            this.scene.nodes = [];
             this.scene.exit();
         }
 
