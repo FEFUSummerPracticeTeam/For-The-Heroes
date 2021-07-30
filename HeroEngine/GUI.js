@@ -17,12 +17,13 @@ var CustJS = function (_box, _layers) { // _box - поле в котором б�
 
 
     //INIT//
-    var _INIT = function () {
+    var _INIT = () => {
         if (typeof _box !== 'object') _box = document.getElementById(_box); // создаем коробку в которую будем помещать много canvas и таким создавать слои
 
         var box = _box.getBoundingClientRect();
         canvas_offset = vector2(box.left, box.top); // смещение объекта
         size = vector2(box.width, box.height);
+        this.size = size;
 
         if (typeof _layers === 'object') {
             var i, j = 0;
@@ -302,15 +303,12 @@ var CustJS = function (_box, _layers) { // _box - поле в котором б�
 
     }
 
-    var create_object = function (p, Constructor) {
-        return p.type === "text" ? new text_object(p, new Constructor()) : new object(p, new Constructor());
-    }
     this.create_object = function (scene, params, update) { // функция для создания объектов на сцене для использования из вне
         if (typeof scene.nodes === "undefined")
             var nds = scene.nodes = [];
         var nds = scene.nodes;
-        let obj = params.type === "text" ? new text_object(params, update) : new object(params, update);
-        nds.push(obj);
+        let obj = params.text !== undefined ? new text_object(params, update) : new object(params, update);
+        nds.push(obj)
         return obj;
     }
 
