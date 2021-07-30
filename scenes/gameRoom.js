@@ -41,7 +41,20 @@ export function launch(ctx) {
                             size: ctx.vector2(24 * MapScale, 24 * MapScale),
                             sprite: getMonster(gameMap[[i, j]].monsterID).sprite,
                             layer: "decorations",
-                        });
+                        },
+                            (p)=>{
+                                ctx.get_layer('text').draw_object({
+                                    x: p.position.x,
+                                    y: p.position.y - 5 * MapScale,
+                                    height: 5,
+                                    width: gameMap[[i, j]].monster.health / 10,
+                                    color: "red",
+                                    anchor: true
+                                })
+                                if(gameMap[[i, j]].monster.health <=0)
+                                    objects_on_field[i.toString() + j] .destroy();
+                            }
+                            );
                 }
             for (let i = 0; i < players.length; i++)
                 players_on_field[i] = ctx.create_object(this, {
@@ -81,6 +94,8 @@ export function launch(ctx) {
                             players[i].cell.itemID = undefined;
                             objects_on_field[players[i].cell.x.toString() + players[i].cell.y].destroy();
                         }
+                        if(players[i].health<=0)
+                            players_on_field[i].destroy();
 
 
                     }
@@ -142,15 +157,25 @@ export function launch(ctx) {
                             if (selectedItem < players[current_player].items.size - 1)
                                 selectedItem++;
                             break;
-                        case 'KeyC':
+                        case 'KeyE':
+                            let enemy_near = false
+                            let enemy;
                             if(show_inventory){
+                                for (let i of players)
+                                    if((Math.abs(i.cell.x-players[current_player].cell.x)<=1) &&
+                                        (Math.abs(i.cell.y-players[current_player].cell.y)<=1) &&
+                                        i!==players[current_player]){
+                                        enemy_near=true;
+                                        enemy = i;
+                                    }
                                 let itemId = players[current_player].items.keys();
                                 for (let j = 0; j < selectedItem ; j++) itemId.next();
-                                getItem(itemId.next().value).useItem(players[current_player])
+                                getItem(itemId.next().value).useItem(players[current_player],{enemy_near,enemy})
                                 selectedItem=0;
                             }
 
                             break;
+
 
 
 

@@ -37,6 +37,15 @@ function gameInitialize(gameCallback) {
     for (let i = 0; i < lobbyPlayers.length; i++) {
         players[i] = new Player(lobbyPlayers[i].name, false);
     }
+    for (let i = 0; i < mapWidth; i++) {
+        for (let j = 0; j < mapHeight; j++) {
+            if (gameMap[[i, j]].monsterID !== undefined) {
+                gameMap[[i, j]].monster = {};
+                Object.assign(gameMap[[i, j]].monster, getMonster(gameMap[[i, j]].monsterID));
+            }
+        }
+
+    }
     if (lobbyPlayers.length <= 1) {
         for (let i = 1; i < lobbyPlayers.length + AIPlayerCount; i++) {
             players[i] = new Player('AI ' + i, true);
@@ -61,7 +70,7 @@ class Player {
         this.maxMana = 50;
         this.mana = 100;
         this.defaultPower = 10; //физическая сила (без снаряжения)
-        this.power = 10;
+        this.power = 100;
         this.armour = 0; //броня
         this.intelligence = 0; //магическая сила (процент, на который увеличивается урон от заклинаний)
         this.speed = 1;
@@ -331,13 +340,26 @@ class Item {
     }
 
     //При его использовании мы делаем что-то в соответствии с его типом
-    useItem(player) {
+    useItem(player,p) {
         switch (this.type) {
             case ItemTypes.Armour:
                 player.setArmour(this.value);
                 break;
             case ItemTypes.Weapon:
-                player.setPower(this.value);
+                if(p.enemy_near) {
+                    p.enemy.getDamage(player.power)
+                    return;
+                }
+                let x = player.cell.x;
+                let y = player.cell.y;
+                if(inBounds(x,y+1)&&getMonster(gameMap[[x,y+1]])!==undefined){ getMonster(gameMap[[x,y+1]]).getDamage(player.power,player);return}
+                if(inBounds(x+1,y)&&getMonster(gameMap[[x+1,y]])!==undefined){ getMonster(gameMap[[x+1,y]]).getDamage(player.power,player);return}
+                if(inBounds(x,y-1)&&getMonster(gameMap[[x,y-1]])!==undefined){ getMonster(gameMap[[x,y-1]]).getDamage(player.power,player);return}
+                if(inBounds(x-1,y)&&getMonster(gameMap[[x-1,y]])!==undefined){ getMonster(gameMap[[x-1,y]]).getDamage(player.power,player);return}
+                if(inBounds(x+1,y+1)&&getMonster(gameMap[[x+1,y+1]])!==undefined){ getMonster(gameMap[[x+1,y+1]]).getDamage(player.power,player);return}
+                if(inBounds(x+1,y-1)&&getMonster(gameMap[[x+1,y-1]])!==undefined){ getMonster(gameMap[[x+1,y-1]]).getDamage(player.power,player);return}
+                if(inBounds(x+1,y-1)&&getMonster(gameMap[[x+1,y-1]])!==undefined){ getMonster(gameMap[[x+1,y-1]]).getDamage(player.power,player);return}
+                if(inBounds(x-1,y-1)&&getMonster(gameMap[[x-1,y-1]])!==undefined){ getMonster(gameMap[[x-1,y-1]]).getDamage(player.power,player);return}
                 break;
             case ItemTypes.HPHealing:
                 player.getHealth(this.value);
