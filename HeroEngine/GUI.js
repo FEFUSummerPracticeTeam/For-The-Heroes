@@ -12,7 +12,8 @@ var CustJS = function (_box, _layers) { // _box - поле в котором б�
         , canvas_offset = null
         , running = false
         , active_scene = null
-        , layer = null;
+        , layer = null
+        , object_id = 0;
 
 
     //INIT//
@@ -62,6 +63,7 @@ var CustJS = function (_box, _layers) { // _box - поле в котором б�
         }
 
         draw_object(p) { // метод рисования на слое
+            this.context.globalAlpha=p.opacity;
             var dp = vp(p.x, p.y);
             if (p.color) {
                 this.context.fillStyle = p.color;
@@ -72,15 +74,18 @@ var CustJS = function (_box, _layers) { // _box - поле в котором б�
                 if (!imgList[p.file].loaded) return;
                 this.context.drawImage(imgList[p.file].image, dp.x, dp.y, p.width, p.height);
             }
+            this.context.globalAlpha=1;
         }
 
         draw_text(p) {
+            this.context.globalAlpha=p.opacity;
             if (p.font || p.size)
                 this.context.font = (p.size || config.font_size) + "px " + (p.font || config.font_name);
             if (p.color) {
                 this.context.fillStyle = p.color;
                 this.context.fillText(p.text, p.x, p.y,)
             }
+            this.context.globalAlpha=1;
         }
     }
 
@@ -184,6 +189,7 @@ var CustJS = function (_box, _layers) { // _box - поле в котором б�
     this.create_scene = function (name, Construct) { // функция для создания сцены из вне
         if (scenes[name]) return;
         scenes[name] = new Scene(new Construct);
+        return scenes[name];
     }
     this.set_scene = function (name) {              // функция для смены сцены (передается имя сцены, по которому извлекается из массива)
         if (!name || !scenes[name]) return false;  // проверка на наличие таковой
@@ -207,6 +213,10 @@ var CustJS = function (_box, _layers) { // _box - поле в котором б�
             this.sprite = false;
             this.layer = p.layer || "main";
             this.obj = p.obj;
+            this.id = object_id++;
+            this.isDying = false;
+            this.opacity = p.opacity||1;
+            this.death_speed = p.death_speed||1;
 
             if (p.sprite) {
                 this.sprite = p.sprite;
@@ -216,14 +226,31 @@ var CustJS = function (_box, _layers) { // _box - поле в котором б�
 
         draw() {
             if (this.IsInView()) {
-                layers[this.layer].draw_object({
-                    x: this.position.x,
-                    y: this.position.y,
-                    width: this.size.x,
-                    height: this.size.y,
-                    color: this.color,
-                    file: this.sprite
-                })
+                if (!this.isDying)
+                    layers[this.layer].draw_object({
+                        x: this.position.x,
+                        y: this.position.y,
+                        width: this.size.x,
+                        height: this.size.y,
+                        color: this.color,
+                        file: this.sprite
+                    })
+                else {
+                    if (this.opacity > 0.1) {
+                        this.opacity -= this.death_speed;
+                        layers[this.layer].draw_object({
+                            x: this.position.x,
+                            y: this.position.y,
+                            width: this.size.x,
+                            height: this.size.y,
+                            color: this.color,
+                            file: this.sprite,
+                            opacity:this.opacity
+                        })
+                    } else {
+                        this.position = vector2(-1000, -1000);
+                    }
+                }
             }
         }
 
@@ -244,11 +271,18 @@ var CustJS = function (_box, _layers) { // _box - поле в котором б�
                 (this.position.x < view.position.x + size.x) &&
                 (this.position.y < view.position.y + size.y)
         }
+
+        destroy() {
+            this.isDying = true;
+            //objects.splice(this.id,1)
+
+
+        }
     }
 
     class text_object extends object {
         constructor(p, construct) {
-            super(p,construct);
+            super(p, construct);
             this.font = p.font;
             this.text = p.text;
         }
@@ -259,7 +293,8 @@ var CustJS = function (_box, _layers) { // _box - поле в котором б�
                 y: this.position.y,
                 size: this.size,
                 color: this.color,
-                text: this.text
+                text: this.text,
+                opacity:this.opacity
             })
 
         }
@@ -275,7 +310,7 @@ var CustJS = function (_box, _layers) { // _box - поле в котором б�
             var nds = scene.nodes = [];
         var nds = scene.nodes;
         let obj = params.type === "text" ? new text_object(params, update) : new object(params, update);
-        nds.push(obj)
+        nds.push(obj);
         return obj;
     }
 

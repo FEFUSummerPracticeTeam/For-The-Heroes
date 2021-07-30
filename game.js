@@ -78,16 +78,25 @@ ctx.create_scene('my_scene', function () {
                 let y = players[current_player].cell.y;
                 switch (e.code) {
                     case 'KeyW':
-                        players[current_player].move(game_map[[x, --y]]);
+                        if(y>0)
+                            players[current_player].move(game_map[[x, --y]]);
+                        console.log(e.code)
                         break;
                     case 'KeyS':
-                        players[current_player].move(game_map[[x, ++y]]);
+                        if(y<mapHeight-1)
+                            players[current_player].move(game_map[[x, ++y]]);
+                        console.log(e.code)
                         break;
                     case 'KeyD':
-                        players[current_player].move(game_map[[++x, y]]);
+                        if(x<mapWidth-1)
+                            players[current_player].move(game_map[[++x, y]]);
+                        console.log(e.code)
                         break;
                     case 'KeyA':
-                        players[current_player].move(game_map[[--x, y]]);
+                        if(x>0)
+                            players[current_player].move(game_map[[--x, y]]);
+                        console.log(e.code)
+                        players_on_field[0].destroy();
                         break;
                 }
                 ctx.view.move(players[current_player].fieldCoordinates);
