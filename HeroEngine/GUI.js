@@ -79,14 +79,16 @@ var CustJS = function (_box, _layers) { // _box - поле в котором б�
         }
 
         draw_text(p) {
+            this.context.textAlign = p.alignment !== undefined ? p.alignment : 'left';
             this.context.globalAlpha = p.opacity;
-            if (p.font || p.size )
-                this.context.font ="bold " + (p.size || config.font_size) + "px " + (p.font || config.font_name);
+            if (p.font || p.size)
+                this.context.font = "bold " + (p.size || config.font_size) + "px " + (p.font || config.font_name);
             if (p.color) {
                 this.context.fillStyle = p.color;
                 this.context.fillText(p.text, p.x, p.y,)
             }
             this.context.globalAlpha = 1;
+            this.context.textAlign = 'left';
         }
     }
 
@@ -159,10 +161,11 @@ var CustJS = function (_box, _layers) { // _box - поле в котором б�
     class Scene {                   // класс сцены который создается через специальную функцию(не из вне)
         constructor(scn) {
             this.scene = scn;
+            this.scene.nodes = [];
         }
 
-        init() {                        // функции которые задаются при создании сцены из вне
-            this.scene.init();
+        init(args) {                        // функции которые задаются при создании сцены из вне
+            this.scene.init(args);
         }
 
         draw() {
@@ -192,14 +195,14 @@ var CustJS = function (_box, _layers) { // _box - поле в котором б�
         scenes[name] = new Scene(new Construct);
         return scenes[name];
     }
-    this.set_scene = function (name) {              // функция для смены сцены (передается имя сцены, по которому извлекается из массива)
+    this.set_scene = function (name,args) {              // функция для смены сцены (передается имя сцены, по которому извлекается из массива)
         if (!name || !scenes[name]) return false;  // проверка на наличие таковой
 
         if (active_scene)                          // закрывает сцену играющую сейчас сцену и запускает новую
             active_scene.exit();
 
         active_scene = scenes[name];
-        active_scene.init();
+        active_scene.init(args);
         return true;
     }
 
@@ -210,10 +213,6 @@ var CustJS = function (_box, _layers) { // _box - поле в котором б�
             this.update = update;
             this.position = p.position;
             this.size = p.size;
-            if (p.anchor !== undefined) {
-                this.position.x -= (this.size.x !== undefined ? this.size.x : this.size);
-                this.position.y -= (this.size.y !== undefined ? this.size.y : this.size);
-            }
             this.color = p.color;
             this.sprite = false;
             this.layer = p.layer || "main";
@@ -290,6 +289,8 @@ var CustJS = function (_box, _layers) { // _box - поле в котором б�
             super(p, construct);
             this.font = p.font;
             this.text = p.text;
+            this.alignment = p.alignment;
+            this.color = p.color !== undefined ? p.color : 'black';
         }
 
         draw() {
@@ -299,17 +300,13 @@ var CustJS = function (_box, _layers) { // _box - поле в котором б�
                 size: this.size,
                 color: this.color,
                 text: this.text,
-                opacity: this.opacity
-            })
-
+                opacity: this.opacity,
+                alignment: this.alignment
+            });
         }
-
-
     }
 
     this.create_object = function (scene, params, update) { // функция для создания объектов на сцене для использования из вне
-        if (typeof scene.nodes === "undefined")
-            var nds = scene.nodes = [];
         var nds = scene.nodes;
         let obj = params.text !== undefined ? new text_object(params, update) : new object(params, update);
         nds.push(obj)
@@ -349,8 +346,6 @@ var CustJS = function (_box, _layers) { // _box - поле в котором б�
         };
         image.src = file;
     };
-
-
 
 
     _INIT();

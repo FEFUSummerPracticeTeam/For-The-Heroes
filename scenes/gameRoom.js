@@ -1,22 +1,7 @@
-export function launch() {
-    var ctx = new CustJS('my_game', {
-        'cells': {
-            "auto_clear": true
-        },
-        'decorations': {
-            "auto_clear": true
-        },
-        'main': {
-            "auto_clear": true
-        },
-        'text': {
-            "auto_clear": true
-        }
+export function launch(ctx) {
 
-    });
-
-    ctx.create_scene('my_scene', function () {
-        var turn_tracker;
+    ctx.create_scene('gameRoom', function () {
+        let turn_tracker;
         this.init = function () {
             var objects_on_field = [];
             var players_on_field = [];
@@ -159,5 +144,4 @@ export function launch() {
         };
 
     });
-    ctx.start('my_scene');
 }
