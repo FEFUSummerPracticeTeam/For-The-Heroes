@@ -31,21 +31,21 @@ ctx.create_scene('my_scene', function () {
                     layer: "cells",
                     color: "black"
                 });
-                if (gameMap[[i, j]].decorID)
+                if (gameMap[[i, j]].decorID !== undefined)
                     ctx.create_object(this, {
                         position: ctx.vector2(game_map[[i, j]].x * 32 * MapScale, game_map[[i, j]].y * 32 * MapScale),
                         size: ctx.vector2(32 * MapScale, 32 * MapScale),
                         sprite: getDecoration(gameMap[[i, j]].decorID).sprite,
                         layer: "decorations",
                     });
-                if (gameMap[[i, j]].itemID)
+                if (gameMap[[i, j]].itemID !== undefined)
                     objects_on_field[i.toString() + j] = ctx.create_object(this, {
                         position: ctx.vector2(game_map[[i, j]].x * 32 * MapScale, game_map[[i, j]].y * 32 * MapScale),
                         size: ctx.vector2(32 * MapScale, 32 * MapScale),
                         sprite: getItem(gameMap[[i, j]].itemID).sprite,
                         layer: "decorations",
                     });
-                if (gameMap[[i, j]].monsterID)
+                if (gameMap[[i, j]].monsterID !== undefined)
                     objects_on_field[i.toString() + j] = ctx.create_object(this, {
                         position: ctx.vector2(game_map[[i, j]].x * 32 * MapScale, game_map[[i, j]].y * 32 * MapScale),
                         size: ctx.vector2(24 * MapScale, 24 * MapScale),
@@ -65,9 +65,10 @@ ctx.create_scene('my_scene', function () {
         turn_tracker = new TurnTracker(() => {
             if (players[turn_tracker.currentPlayerIndex].isAI === true) {
                 doAITurn(players[turn_tracker.currentPlayerIndex]);
+                turn_tracker.finishTurn();
             }
-            turn_tracker.finishTurn();
         }, () => {
+            turn_tracker.start();
         });
         turn_tracker.start();
         ctx.view.move(players[turn_tracker.currentPlayerIndex].fieldCoordinates);
@@ -78,19 +79,15 @@ ctx.create_scene('my_scene', function () {
                 switch (e.code) {
                     case 'KeyW':
                         players[current_player].move(game_map[[x, --y]]);
-                        console.log(e.code)
                         break;
                     case 'KeyS':
                         players[current_player].move(game_map[[x, ++y]]);
-                        console.log(e.code)
                         break;
                     case 'KeyD':
                         players[current_player].move(game_map[[++x, y]]);
-                        console.log(e.code)
                         break;
                     case 'KeyA':
                         players[current_player].move(game_map[[--x, y]]);
-                        console.log(e.code)
                         break;
                 }
                 ctx.view.move(players[current_player].fieldCoordinates);

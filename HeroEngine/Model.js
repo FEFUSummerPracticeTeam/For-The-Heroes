@@ -262,31 +262,31 @@ class Monster {
 function doAITurn(player) {
     //BFS
     let queue = new Queue();
-    let d = 0;
     let visited = new Map();
     queue.enqueue(player.cell);
     let targetCell = undefined;
     loop:
         while (!queue.isEmpty()) {
             let u = queue.dequeue();
-            let xy = {x: -3, y: -3}
+            let xy = {x: -3, y: -3};
+            let mods = [[0, 1], [1, 0], [-1, 0], [0, -1]];
             for (let i = 0; i < 4; i++) {
-                xy.y++;
-                if (xy.y === 2) {
-                    xy.y = 0;
-                    xy.x++;
-                }
-                let x = u.x - xy.x;
-                let y = u.y - xy.y;
+                let x = u.x + mods[i][0];
+                let y = u.y + mods[i][1];
                 if (inBounds(x, y, mapWidth, mapHeight)) {
-                    if (gameMap[x][y].cell.item !== undefined) {
-                        targetCell = gameMap[x][y].cell;
-                        break loop;
-                    } else {
-                        for (const player of players) {
-                            if (player.cell === gameMap[x][y].cell) {
-                                targetCell = gameMap[x][y].cell;
-                                break loop;
+                    if (visited.get(gameMap[[x, y]]) === undefined) {
+                        visited.set(gameMap[[x, y]], true);
+                        queue.enqueue(gameMap[[x, y]]);
+                        if (gameMap[[x, y]].itemID !== undefined) {
+                            targetCell = gameMap[[x, y]];
+                            break loop;
+                        } else {
+                            for (const p of players) {
+                                if(p === player) continue;
+                                if (p.cell === gameMap[[x, y]]) {
+                                    targetCell = gameMap[[x, y]];
+                                    break loop;
+                                }
                             }
                         }
                     }
@@ -295,12 +295,14 @@ function doAITurn(player) {
             //BFS END
         }
     for (let i = 0; i < player.speed; i++) {
-        if (player.x !== targetCell.x) {
-            player.x += targetCell.x < player.x ? -1 : 1;
-        } else if (player.y !== targetCell.y) {
-            player.y += targetCell.y < player.y ? -1 : 1;
+        let cell = player.cell;
+        if (cell.x !== targetCell.x) {
+            player.move(gameMap[[cell.x + (targetCell.x < cell.x ? -1 : 1), cell.y]]);
+        } else if (cell.y !== targetCell.y) {
+            player.move(gameMap[[cell.x, cell.y + (targetCell.y < cell.y ? -1 : 1)]]);
         }
     }
+    console.log("ИИ сдвинулся на " + player.cell.x + " " + player.cell.y);
 }
 
 //Абстракция айтемов игры
@@ -353,7 +355,7 @@ class Item {
                     case "Молния": //у противника меньше времени на свой ход
                         //TODO
                         break;
-                    case "Невидимость": //дается на рассчитываемое по формуле время и исчезает при атаке                    
+                    case "Невидимость": //дается на рассчитываемое по формуле время и исчезает при атаке
                         //TODO
                         break;
                     case "Создание ловушки": //создает клетку с отрицательным эффектом
@@ -384,7 +386,7 @@ class Cell {
 
 //Класс, отслеживающий ходы в игре
 class TurnTracker {
-    turnCnt = 0;
+    turnCnt = -1;
     timePerTurn;
     timeLeft;
     currentInterval;
@@ -393,10 +395,11 @@ class TurnTracker {
     constructor(onTurnStartCallback, onTurnEndCallback) { //хранит индекс в массиве того, чей был/будет ход
         this.onTurnStartCallback = onTurnStartCallback;
         this.onTurnEndCallback = onTurnEndCallback;
-        this.timePerTurn = 60 / players.length;
+        this.timePerTurn = 6 / players.length;
     }
 
     start() {
+        this.turnCnt++;
         this.currentPlayerIndex = this.turnCnt % players.length;
         this.timeLeft = this.timePerTurn;
         this.currentInterval = setInterval(() => {
@@ -404,16 +407,14 @@ class TurnTracker {
             if (this.timeLeft === 0) {
                 this.finishTurn();
             }
-            console.log("Ходит игрок " + turn_tracker.currentPlayerIndex + ", у него " + turn_tracker.timeLeft + " секунд");
-        }, 1);
+            console.log("Ходит игрок " + this.currentPlayerIndex + ", у него " + this.timeLeft + " секунд");
+        }, 1000);
         this.onTurnStartCallback(this.currentPlayerIndex);
     }
 
     finishTurn() {
         window.clearInterval(this.currentInterval)
-        this.currentPlayerIndex = this.turnCnt % players.length;
         this.onTurnEndCallback(this.currentPlayerIndex);
-        this.turnCnt++;
     }
 }
 
