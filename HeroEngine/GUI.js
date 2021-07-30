@@ -13,7 +13,6 @@ var CustJS = function (_box, _layers) { // _box - поле в котором б�
         , running = false
         , active_scene = null
         , layer = null
-        , object_id = 0;
 
 
     //INIT//
@@ -71,6 +70,7 @@ var CustJS = function (_box, _layers) { // _box - поле в котором б�
                 this.context.fillRect(dp.x, dp.y, p.width, p.height);
             }
             if (p.file) {
+                LoadImage(p.file);
                 if (!imgList[p.file]) return;
                 if (!imgList[p.file].loaded) return;
                 this.context.drawImage(imgList[p.file].image, dp.x, dp.y, p.width, p.height);
@@ -216,10 +216,8 @@ var CustJS = function (_box, _layers) { // _box - поле в котором б�
             this.color = p.color;
             this.sprite = false;
             this.layer = p.layer || "main";
-            this.obj = p.obj;
-            this.id = object_id++;
             this.isDying = false;
-            this.opacity = p.opacity || 1;
+            this.opacity = p.opacity ;
             this.death_speed = p.death_speed || 1;
 
             if (p.sprite) {

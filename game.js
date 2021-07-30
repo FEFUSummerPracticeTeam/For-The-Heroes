@@ -17,6 +17,12 @@ let ctx = new CustJS('my_game', {
     },
     'text': {
         "auto_clear": true
+    },
+    'window': {
+        "auto_clear": true
+    },
+    'window_text': {
+        "auto_clear": true
     }
 });
 for (const scene of scenes) {

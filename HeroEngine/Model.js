@@ -160,7 +160,7 @@ class Player {
         this.cell = cell;
         this.fieldCoordinates.x = this.cell.x * 32 * MapScale;
         this.fieldCoordinates.y = this.cell.y * 32 * MapScale;
-        if(cell.itemID){
+        if(cell.itemID !== undefined){
             this.pickItem(cell.itemID)
         }
 
@@ -322,7 +322,7 @@ class Item {
         let cnt = player.items.get(this.ID);
         if (cnt !== 0) {
             if (cnt === 1) {
-                players.items.delete(this.ID);
+                player.items.delete(this.ID);
             } else {
                 player.items.set(this.ID, players.item.get(this.ID) - 1);
             }

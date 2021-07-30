@@ -1,12 +1,16 @@
 export function launch(ctx) {
-
     ctx.create_scene('gameRoom', function () {
         let turn_tracker;
+        var show_inventory = false;
+        var current_player;
+        var selectedItem;
         this.init = function () {
             var objects_on_field = [];
             var players_on_field = [];
+            selectedItem = 0;
+            let offset = 0;
             gameInitialize();
-            let current_player = getCurrentPlayerIndex();
+            current_player = getCurrentPlayerIndex();
             var game_map = getGameMap();
             for (let i = 0; i < mapWidth; i++)
                 for (let j = 0; j < mapHeight; j++) {
@@ -47,34 +51,35 @@ export function launch(ctx) {
                         layer: "main",
 
                     },
-                    (p)=>{
+                    (p) => {
                         ctx.get_layer('text').draw_text({
                             text: players[i].name,
                             x: p.position.x,
-                            y:p.position.y - 12*MapScale,
-                            size:15,
+                            y: p.position.y - 12 * MapScale,
+                            size: 15,
                             color: "black",
                             anchor: true
                         })
                         ctx.get_layer('text').draw_object({
                             x: p.position.x,
-                            y:p.position.y +5*MapScale,
+                            y: p.position.y + 5 * MapScale,
                             height: 5,
-                            width:(players[i].health)/4,
-                            color:"red",
+                            width: (players[i].health) / 4,
+                            color: "red",
                             anchor: true
                         })
                         ctx.get_layer('text').draw_object({
                             x: p.position.x,
-                            y:p.position.y +10*MapScale,
+                            y: p.position.y + 10 * MapScale,
                             height: 5,
-                            width:(players[i].mana)/4,
-                            color:"blue",
+                            width: (players[i].mana) / 4,
+                            color: "blue",
                             anchor: true
                         })
-                        if(players[i].cell.itemID!== undefined){
-                            players[i].cell.itemID = undefined ;
-                            objects_on_field[players[i].cell.x.toString()+players[i].cell.y].destroy();
+                        if (players[i].cell.itemID !== undefined) {
+
+                            players[i].cell.itemID = undefined;
+                            objects_on_field[players[i].cell.x.toString() + players[i].cell.y].destroy();
                         }
 
 
@@ -89,19 +94,19 @@ export function launch(ctx) {
                 turn_tracker.start();
             });
             turn_tracker.start();
-            ctx.create_object(this,{
-                    text:turn_tracker.timeLeft,
+            ctx.create_object(this, {
+                    text: turn_tracker.timeLeft,
                     size: 50,
-                    position:ctx.vector2(50,50),
-                    layer:"text",
-                    color:"black",
-                    death_speed:-0.03,
-                    opacity:0.95,
+                    position: ctx.vector2(1000, 50),
+                    layer: "text",
+                    color: "black",
+                    death_speed: -0.03,
+                    opacity: 0.95,
                 },
-                (p)=>{
+                (p) => {
                     p.text = turn_tracker.timeLeft;
-                    p.opacity+=p.death_speed
-                    if((p.opacity<0.1)||(p.opacity>0.96)) p.death_speed*=(-1);
+                    p.opacity += p.death_speed
+                    if ((p.opacity < 0.1) || (p.opacity > 0.96)) p.death_speed *= (-1);
                 }
             )
             ctx.view.move(players[turn_tracker.currentPlayerIndex].fieldCoordinates);
@@ -113,35 +118,82 @@ export function launch(ctx) {
                         case 'KeyW':
                             if (y > 0)
                                 players[current_player].move(game_map[[x, --y]]);
-                            console.log(e.code)
                             break;
                         case 'KeyS':
                             if (y < mapHeight - 1)
                                 players[current_player].move(game_map[[x, ++y]]);
-                            console.log(e.code)
                             break;
                         case 'KeyD':
                             if (x < mapWidth - 1)
                                 players[current_player].move(game_map[[++x, y]]);
-                            console.log(e.code)
                             break;
                         case 'KeyA':
                             if (x > 0)
                                 players[current_player].move(game_map[[--x, y]]);
-                            console.log(e.code)
                             break;
-                    }
-                    ctx.view.move(players[current_player].fieldCoordinates);
+                        case 'KeyI':
+                            show_inventory = !show_inventory;
+                            break;
+                        case 'ArrowUp':
+                            if (selectedItem !== 0)
+                                selectedItem--;
+                            break;
+                        case 'ArrowDown':
+                            if (selectedItem < players[current_player].items.size - 1)
+                                selectedItem++;
+                            break;
+                        case 'KeyC':
+                            if(show_inventory){
+                                let itemId = players[current_player].items.keys();
+                                for (let j = 0; j < selectedItem ; j++) itemId.next();
+                                getItem(itemId.next().value).useItem(players[current_player])
+                                selectedItem=0;
+                            }
+
+                            break;
+
+
+
                 }
+                ctx.view.move(players[current_player].fieldCoordinates);
+            }
+        }
+    );
+};
+this.update = function () {
+
+};
+this.draw = function () {
+    if (show_inventory) {
+        ctx.get_layer('window').draw_object({
+            x: 5,
+            y: 20,
+            width: 200,
+            height: 300,
+            file: "assets/sprites/background_inventory.png"
+        })
+        let items = players[current_player].items.entries();
+        let yOff = 50;
+        let y = 0
+        for (let i of items) {
+            let item_name = itemTypeList[i[0]].name
+            ctx.get_layer('window_text').draw_text({
+                x: 10 + 5,
+                y: yOff,
+                size: 15,
+                color: y === selectedItem ? 'red' : 'white',
+                text: item_name + " x" + i[1],
             });
-        };
-        this.update = function () {
+            yOff += 30
+            y++;
+        }
+        ;
 
-        };
-        this.draw = function () {
-        };
-        this.exit = function () {
-        };
+    }
+}
+this.exit = function () {
+};
 
-    });
+})
+;
 }
