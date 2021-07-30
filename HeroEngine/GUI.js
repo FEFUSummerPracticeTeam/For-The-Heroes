@@ -80,8 +80,8 @@ var CustJS = function (_box, _layers) { // _box - поле в котором б�
 
         draw_text(p) {
             this.context.globalAlpha = p.opacity;
-            if (p.font || p.size)
-                this.context.font = (p.size || config.font_size) + "px " + (p.font || config.font_name);
+            if (p.font || p.size )
+                this.context.font ="bold " + (p.size || config.font_size) + "px " + (p.font || config.font_name);
             if (p.color) {
                 this.context.fillStyle = p.color;
                 this.context.fillText(p.text, p.x, p.y,)
@@ -135,9 +135,9 @@ var CustJS = function (_box, _layers) { // _box - поле в котором б�
 
     //ENGINE//
     var _update = function () {  // функция для обновления интерфейса (не для использования из вне)
+        for (let i of clear_layers)
+            i.clear();
         active_scene.update();
-        for (let i in clear_layers)
-            clear_layers[i].clear();
         active_scene.draw_objects();
         active_scene.draw();
 
@@ -349,6 +349,8 @@ var CustJS = function (_box, _layers) { // _box - поле в котором б�
         };
         image.src = file;
     };
+
+
 
 
     _INIT();

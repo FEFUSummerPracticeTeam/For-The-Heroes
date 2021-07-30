@@ -8,6 +8,9 @@ export function launch() {
         },
         'main': {
             "auto_clear": true
+        },
+        'text': {
+            "auto_clear": true
         }
 
     });
@@ -57,7 +60,35 @@ export function launch() {
                         size: ctx.vector2(32 * MapScale, 32 * MapScale),
                         sprite: "assets/sprites/player.png",
                         layer: "main",
+
                     },
+                    ()=>{
+                        ctx.get_layer('text').draw_text({
+                            text: "asd",
+                            x: players[i].fieldCoordinates.x,
+                            y:players[i].fieldCoordinates.y - 12*MapScale,
+                            size:15,
+                            color: "black",
+                            anchor: true
+                        })
+                        ctx.get_layer('text').draw_object({
+                            x: players[i].fieldCoordinates.x,
+                            y:players[i].fieldCoordinates.y +5*MapScale,
+                            height: 5,
+                            width:(players[i].health)/4,
+                            color:"red",
+                            anchor: true
+                        })
+                        ctx.get_layer('text').draw_object({
+                            x: players[i].fieldCoordinates.x,
+                            y:players[i].fieldCoordinates.y +10*MapScale,
+                            height: 5,
+                            width:(players[i].mana)/4,
+                            color:"blue",
+                            anchor: true
+                        })
+
+                    }
                 );
 
             turn_tracker = new TurnTracker(() => {
@@ -76,16 +107,24 @@ export function launch() {
                     let y = players[current_player].cell.y;
                     switch (e.code) {
                         case 'KeyW':
-                            players[current_player].move(game_map[[x, --y]]);
+                            if (y > 0)
+                                players[current_player].move(game_map[[x, --y]]);
+                            console.log(e.code)
                             break;
                         case 'KeyS':
-                            players[current_player].move(game_map[[x, ++y]]);
+                            if (y < mapHeight - 1)
+                                players[current_player].move(game_map[[x, ++y]]);
+                            console.log(e.code)
                             break;
                         case 'KeyD':
-                            players[current_player].move(game_map[[++x, y]]);
+                            if (x < mapWidth - 1)
+                                players[current_player].move(game_map[[++x, y]]);
+                            console.log(e.code)
                             break;
                         case 'KeyA':
-                            players[current_player].move(game_map[[--x, y]]);
+                            if (x > 0)
+                                players[current_player].move(game_map[[--x, y]]);
+                            console.log(e.code)
                             break;
                     }
                     ctx.view.move(players[current_player].fieldCoordinates);

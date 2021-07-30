@@ -57,7 +57,7 @@ class Player {
         this.maxHealth = 100;
         this.health = 100;
         this.maxMana = 50;
-        this.mana = 50;
+        this.mana = 100;
         this.defaultPower = 10; //физическая сила (без снаряжения)
         this.power = 10;
         this.armour = 0; //броня
