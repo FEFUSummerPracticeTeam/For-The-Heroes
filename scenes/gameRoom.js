@@ -62,35 +62,39 @@ export function launch() {
                         layer: "main",
 
                     },
-                    ()=>{
+                    (p)=>{
                         ctx.get_layer('text').draw_text({
-                            text: "asd",
-                            x: players[i].fieldCoordinates.x,
-                            y:players[i].fieldCoordinates.y - 12*MapScale,
+                            text: players[i].name,
+                            x: p.position.x,
+                            y:p.position.y - 12*MapScale,
                             size:15,
                             color: "black",
                             anchor: true
                         })
                         ctx.get_layer('text').draw_object({
-                            x: players[i].fieldCoordinates.x,
-                            y:players[i].fieldCoordinates.y +5*MapScale,
+                            x: p.position.x,
+                            y:p.position.y +5*MapScale,
                             height: 5,
                             width:(players[i].health)/4,
                             color:"red",
                             anchor: true
                         })
                         ctx.get_layer('text').draw_object({
-                            x: players[i].fieldCoordinates.x,
-                            y:players[i].fieldCoordinates.y +10*MapScale,
+                            x: p.position.x,
+                            y:p.position.y +10*MapScale,
                             height: 5,
                             width:(players[i].mana)/4,
                             color:"blue",
                             anchor: true
                         })
+                        if(players[i].cell.itemID!== undefined){
+                            players[i].cell.itemID = undefined ;
+                            objects_on_field[players[i].cell.x.toString()+players[i].cell.y].destroy();
+                        }
+
 
                     }
                 );
-
             turn_tracker = new TurnTracker(() => {
                 if (players[turn_tracker.currentPlayerIndex].isAI === true) {
                     doAITurn(players[turn_tracker.currentPlayerIndex]);
@@ -100,6 +104,21 @@ export function launch() {
                 turn_tracker.start();
             });
             turn_tracker.start();
+            ctx.create_object(this,{
+                    text:turn_tracker.timeLeft,
+                    size: 50,
+                    position:ctx.vector2(50,50),
+                    layer:"text",
+                    color:"black",
+                    death_speed:-0.03,
+                    opacity:0.95,
+                },
+                (p)=>{
+                    p.text = turn_tracker.timeLeft;
+                    p.opacity+=p.death_speed
+                    if((p.opacity<0.1)||(p.opacity>0.96)) p.death_speed*=(-1);
+                }
+            )
             ctx.view.move(players[turn_tracker.currentPlayerIndex].fieldCoordinates);
             window.addEventListener('keyup', function (e) {
                 if (current_player === turn_tracker.currentPlayerIndex) {

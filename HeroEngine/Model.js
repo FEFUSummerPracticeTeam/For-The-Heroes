@@ -160,6 +160,10 @@ class Player {
         this.cell = cell;
         this.fieldCoordinates.x = this.cell.x * 32 * MapScale;
         this.fieldCoordinates.y = this.cell.y * 32 * MapScale;
+        if(cell.itemID){
+            this.pickItem(cell.itemID)
+        }
+
     }
 
 
