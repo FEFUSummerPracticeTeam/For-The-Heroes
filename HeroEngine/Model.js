@@ -37,9 +37,15 @@ function gameInitialize(gameCallback) {
         sync(true);
     }
     updateSyncValue();
-    for (let i = 0; i < lobbyPlayers.length; i++) {
-        players[i] = new Player(lobbyPlayers[i].name, false);
+    //Если игроки уже есть значит мы уже их сделали при получении карты
+    if (players.length === 0) {
+        for (let i = 0; i < lobbyPlayers.length; i++) {
+            players[i] = new Player(lobbyPlayers[i].name, false);
+            players[i].move(gameMap [randomRangeInt(0, mapWidth)][randomRangeInt(0, mapWidth)])
+        }
     }
+
+    //Создание копий монстров для поля
     for (let i = 0; i < mapWidth; i++) {
         for (let j = 0; j < mapHeight; j++) {
             if (gameMap[i][j].monsterID !== undefined) {
@@ -51,13 +57,14 @@ function gameInitialize(gameCallback) {
             }
         }
     }
+    //Спаун AI
     if (lobbyPlayers.length <= 1) {
         for (let i = 1; i < lobbyPlayers.length + AIPlayerCount; i++) {
             players[i] = new Player('AI ' + i, true);
             isAiGame = true;
         }
     }
-    for (let i of players) i.move(gameMap [randomRangeInt(0, mapWidth)][randomRangeInt(0, mapWidth)]);
+    //Отправка пакета если мы сервер
     if (isAiGame === false && shouldGenerateField()) {
         let _playerPos = [];
         for (const player of players) {
@@ -583,14 +590,15 @@ function getItem(ID) {
 }
 
 //(private) Интерпретатор команд с firebase
-function cmdHandler(Player, ev) { //Player - индекс игрока в массиве игроков
+function cmdHandler(playerIndex, ev) { //playerIndex - индекс игрока в массиве игроков
     //TODO
     switch (ev.cmdID) {
         case commands.Map:
             gameMap = JSON.parse(ev.gameMap);
-            let pos = JSON.parse(ev.playerPos)
-            for (let i = 0; i < pos; i++) {
-                players[i].cell = ev.playerPos[i];
+            let pos = JSON.parse(ev.playerPos);
+            for (let i = 0; i < lobbyPlayers.length; i++) {
+                players[i] = new Player(lobbyPlayers[i].name, false);
+                players[i].move(gameMap[pos[i].x][pos[i].y]);
             }
             break;
         case commands.Disconnected:

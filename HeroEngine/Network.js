@@ -200,12 +200,12 @@ function initEventCallback() {
 
 function sync(establishing) {
     let updates = {};
-    updates[`events/${lobbyID}/sync`] = establishing ? 0 : firebase.database.ServerValue.increment(1);
+    updates[`sync/${lobbyID}/sync`] = establishing ? 0 : firebase.database.ServerValue.increment(1);
     firebase.database().ref().update(updates);
 }
 
 function updateSyncValue() {
-    database.ref('events/' + lobbyID + '/' + 'sync').on('child_changed', (data) => {
+    database.ref('sync/' + lobbyID + '/').on('child_changed', (data) => {
         syncCounter = data.val();
     });
 }
