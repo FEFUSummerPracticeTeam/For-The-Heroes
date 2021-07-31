@@ -175,7 +175,8 @@ function shouldGenerateField() {
 //Принимает: void
 //Возвращает: number - номер текущего игрока
 function getCurrentPlayerIndex() {
-    if (isDebug) return 0
+    if (isDebug) return 0;
+    if (isAiGame) return 0;
     for (let i = 0; i < getLobbyPlayers().length; i++) {
         if (lobbyPlayers[i].id.localeCompare(playerID) === 0) {
             return i;

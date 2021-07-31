@@ -12,8 +12,9 @@ export function launch(ctx) {
             let offset = 0;
             gameInitialize((playerIndex, pack) => {
                 switch (pack.cmdID) {
-                    case commands.Map:
-
+                    case commands.Disconnected:
+                        ctx.set_scene('lobbySelectRoom');
+                        break;
                 }
             });
             current_player = getCurrentPlayerIndex();
@@ -151,7 +152,7 @@ export function launch(ctx) {
                     opacity: 0.95,
                 },
                 (p) => {
-                    p.text = waitingForSync || turn_tracker.currentPlayerIndex ? 'Ожидание игроков... ' : (current_player === turn_tracker.currentPlayerIndex ? 'Сейчас ВАШ ход!' : 'Сейчас ход ' + lobbyPlayers[turn_tracker.currentPlayerIndex].name);
+                    p.text = waitingForSync || turn_tracker.currentPlayerIndex ? 'Ожидание игроков... ' : (current_player === turn_tracker.currentPlayerIndex ? 'Сейчас ВАШ ход!' : 'Сейчас ход ' + players[turn_tracker.currentPlayerIndex].name);
                     p.opacity += p.death_speed;
                     if ((p.opacity < 0.1) || (p.opacity > 0.96)) p.death_speed *= (-1);
                     p.position = ctx.vector2(ctx.view.position.x + ctx.size.x / 2, ctx.view.position.y + ctx.size.y / 10);
@@ -203,7 +204,10 @@ export function launch(ctx) {
                                         }
                                     let itemId = players[current_player].items.keys();
                                     for (let j = 0; j < selectedItem; j++) itemId.next();
-                                    getItem(itemId.next().value).useItem(players[current_player], {enemy_near, enemy})
+                                    let item = getItem(itemId.next().value);
+                                    let p = {}
+                                    item.useItem(players[current_player],p);
+                                    makeEvent({cmdID: commands.Item, itemID: item.id, p: JSON.stringify(p)});
                                     selectedItem = 0;
                                 }
                                 break;

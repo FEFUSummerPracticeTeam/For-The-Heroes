@@ -88,8 +88,11 @@ function gameInitialize(gameCallback) {
     //Если мы не оффлайн, включаем синхронизации
     if (!isAiGame) {
         updateSyncValue();
-        addEventCallback(gameCallback);
+    } else {
+        //Если мы играем с AI, удаляем лобби, оно всё равно не нужно там
+        cleanLobby(lobbyID);
     }
+    addEventCallback(gameCallback);
 }
 
 class Player {
@@ -395,10 +398,7 @@ class Item {
                             return;
                         }
                     }
-
                 }
-
-
                 break;
             case ItemTypes.HPHealing:
                 player.getHealth(this.value);
@@ -628,10 +628,14 @@ function cmdHandler(playerIndex, ev) { //playerIndex - индекс игрока
             }
             break;
         case commands.Disconnected:
+            if (lobbyPlayers[playerIndex].id !== playerID)
+                alert('Игрок ' + players[playerIndex].name + ' покинул лобби...')
+            cleanLobby(lobbyID);
             break;
         case commands.TurnEnd:
             break;
         case commands.Item:
+
             break;
         case commands.Movement:
             if (gameMap.length === 0) break;
