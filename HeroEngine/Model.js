@@ -61,7 +61,7 @@ function gameInitialize(gameCallback) {
             isAiGame = true;
         }
     }
-    for (let i of players) i.move(gameMap [[randomRangeInt(0, mapWidth), randomRangeInt(0, mapWidth)]]);
+    for (let i of players) i.move(gameMap [/*[randomRangeInt(0, mapWidth), randomRangeInt(0, mapWidth) ]*/[40,24]]);
 
     addEventCallback(gameCallback);
 }

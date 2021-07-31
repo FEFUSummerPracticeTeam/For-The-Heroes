@@ -81,11 +81,12 @@ var CustJS = function (_box, _layers) { // _box - поле в котором б�
         draw_text(p) {
             this.context.textAlign = p.alignment !== undefined ? p.alignment : 'left';
             this.context.globalAlpha = p.opacity;
+            var dp = vp(p.x, p.y);
             if (p.font || p.size)
                 this.context.font = "bold " + (p.size || config.font_size) + "px " + (p.font || config.font_name);
             if (p.color) {
                 this.context.fillStyle = p.color;
-                this.context.fillText(p.text, p.x, p.y,)
+                this.context.fillText(p.text, dp.x, dp.y,)
             }
             this.context.globalAlpha = 1;
             this.context.textAlign = 'left';
@@ -316,9 +317,30 @@ var CustJS = function (_box, _layers) { // _box - поле в котором б�
     var view = CustJS.view = new function () {  // работа с камерой
         this.position = vector2(0, 0);
 
-        this.move = function (v) { // двигаем камеру
-            this.position.x = ((v.x - size.x / 2 > 0) && (v.x + size.x / 2 < (mapWidth + 1) * 32 * MapScale)) ? v.x - size.x / 2 : this.position.x;
-            this.position.y = ((v.y - size.y / 2 > 0) && (v.y + size.y / 2 < (mapHeight + 1) * 32 * MapScale)) ? v.y - size.y / 2 : this.position.y;
+        this.move = function (v,is_start=false) { // двигаем камеру
+            if(!is_start) {
+                this.position.x = ((v.x - size.x / 2 > 0) && (v.x + size.x / 2 < (mapWidth) * 32 * MapScale)) ? v.x - size.x / 2 : this.position.x;
+                this.position.y = ((v.y - size.y / 2 > 0) && (v.y + size.y / 2 < (mapHeight) * 32 * MapScale)) ? v.y - size.y / 2 : this.position.y;
+            }
+            else {
+                if(v.x - size.x / 2 > 0){
+                    if(v.x + size.x / 2 < (mapWidth) * 32 * MapScale)
+                        this.position.x = v.x - size.x / 2;
+                    else
+                        this.position.x = (mapWidth) * 32 * MapScale - size.x;
+                }
+                else
+                    this.position.x =  0 ;
+
+                if(v.y - size.y / 2 > 0){
+                    if(v.y + size.y / 2 < (mapHeight) * 32 * MapScale)
+                        this.position.y = v.y - size.y / 2;
+                    else
+                        this.position.y = (mapHeight) * 32 * MapScale - size.y ;
+                }
+                else
+                    this.position.y =  0;
+            }
         }
     };
     var vp = function (x, y) {          // расчет смещения объектов  относительно камеры

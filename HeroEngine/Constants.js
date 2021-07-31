@@ -1,11 +1,11 @@
 //Часть движка, хранящая константы/enum
 
 //Переменная, кроющая часть ошибок на время дебага
-const isDebug = false;
+const isDebug = true;
 
 //(Model) Парметры карты
-const mapWidth = 25;
-const mapHeight = 25;
+const mapWidth = 50;
+const mapHeight = 50;
 const decorCount = (mapHeight * mapWidth) / 18;
 const itemCount = 10;
 const monsterCount = 10;

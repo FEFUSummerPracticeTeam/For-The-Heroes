@@ -28,4 +28,4 @@ let ctx = new CustJS('my_game', {
 for (const scene of scenes) {
     scene.launch(ctx);
 }
-ctx.start('nameEnterRoom')
+ctx.start('gameRoom')

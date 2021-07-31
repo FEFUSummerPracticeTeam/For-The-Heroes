@@ -113,10 +113,10 @@ export function launch(ctx) {
                     turn_tracker.start();
                 }
             });
-            ctx.create_object(this, {
+           ctx.create_object(this, {
                     text: '',
                     size: 50,
-                    position: ctx.vector2(ctx.size.x / 2, ctx.size.y / 10),
+                    position: ctx.vector2(ctx.view.position.x+500, ctx.view.position.y+500),
                     layer: "text",
                     color: "black",
                     death_speed: -0.03,
@@ -126,9 +126,10 @@ export function launch(ctx) {
                     p.text = waitingForSync ? 'Игроков готово: ' + syncCounter % players.length : turn_tracker.timeLeft;
                     p.opacity += p.death_speed
                     if ((p.opacity < 0.1) || (p.opacity > 0.96)) p.death_speed *= (-1);
+                    p.position= ctx.vector2(ctx.view.position.x+ctx.size.x/2, ctx.view.position.y+ctx.size.y/20)
                 }
             )
-            ctx.view.move(players[current_player].fieldCoordinates);
+            ctx.view.move(players[current_player].fieldCoordinates,true);
             window.addEventListener('keyup', function (e) {
                     if (current_player === turn_tracker.currentPlayerIndex) {
                         let x = players[current_player].cell.x;
@@ -181,46 +182,48 @@ export function launch(ctx) {
                                 break;
 
 
-                        }
-                        ctx.view.move(players[current_player].fieldCoordinates);
-                    }
+
+
                 }
-            );
-            if (!isAiGame) sync();
-        };
-        this.update = function () {
-            if (waitingForSync) {
-                if (syncCounter / players.length === turn_tracker.turnCnt + 2 || isAiGame) {
-                    waitingForSync = false;
-                    turn_tracker.start();
-                }
+                ctx.view.move(players[current_player].fieldCoordinates);
             }
-        };
-        this.draw = function () {
-            if (show_inventory) {
-                ctx.get_layer('window').draw_object({
-                    x: 5,
-                    y: 20,
-                    width: 200,
-                    height: 300,
-                    file: "assets/sprites/background_inventory.png"
-                })
-                let items = players[current_player].items.entries();
-                let yOff = 50;
-                let y = 0
-                for (let i of items) {
-                    let item_name = itemTypeList[i[0]].name
-                    ctx.get_layer('window_text').draw_text({
-                        x: 10 + 5,
-                        y: yOff,
-                        size: 15,
-                        color: y === selectedItem ? 'red' : 'white',
-                        text: item_name + " x" + i[1],
-                    });
-                    yOff += 30
-                    y++;
-                }
-                ;
+        }
+    );
+            if (!isAiGame) sync();
+};
+this.update = function () {
+    if (waitingForSync) {
+        if (syncCounter / players.length === turn_tracker.turnCnt + 2 || isAiGame) {
+            waitingForSync = false;
+            turn_tracker.start();
+        }
+    }
+};
+this.draw = function () {
+    if (show_inventory) {
+        ctx.get_layer('window').draw_object({
+            x:  ctx.view.position.x,
+            y: ctx.view.position.y,
+            width: 200,
+            height: 300,
+            file: "assets/sprites/background_inventory.png"
+        })
+        let items = players[current_player].items.entries();
+        let yOff = ctx.view.position.y+50;
+        let y = 0
+        for (let i of items) {
+            let item_name = itemTypeList[i[0]].name
+            ctx.get_layer('window_text').draw_text({
+                x: ctx.view.position.x+10 + 5,
+                y: yOff,
+                size: 15,
+                color: y === selectedItem ? 'red' : 'white',
+                text: item_name + " x" + i[1],
+            });
+            yOff += 30
+            y++;
+        }
+        ;
 
             }
         }
