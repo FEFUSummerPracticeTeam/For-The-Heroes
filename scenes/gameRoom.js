@@ -15,7 +15,36 @@ export function launch(ctx) {
                     case commands.Disconnected:
                         ctx.set_scene('lobbySelectRoom');
                         break;
+                    case commands.Item:
+                        switch (pack.itemID) {
+                            case 4:
+                                var fireball = ctx.create_object(this, {
+                                        position: ctx.vector2(players[current_player].fieldCoordinates.x, players[current_player].fieldCoordinates.y),
+                                        layer: "main",
+                                        size: ctx.vector2(16 * MapScale, 16 * MapScale),
+                                        sprite: "assets/sprites/magic_fireball.png",
+                                        death_speed: 0.03,
+                                    },
+                                    (p) => {
+                                        switch (direction) {
+                                            case 0:
+                                                p.move(0, -1);
+                                                break
+                                            case 1:
+                                                p.move(1, 0);
+                                                break
+                                            case 2:
+                                                p.move(0, 1);
+                                                break
+                                            case 3:
+                                                p.move(-1, 0);
+                                                break
+                                        }
+                                    }
+                                )
+                        }
                 }
+
             });
             current_player = getCurrentPlayerIndex();
             var game_map = getGameMap();
@@ -70,6 +99,7 @@ export function launch(ctx) {
                         position: players[i].fieldCoordinates,
                         size: ctx.vector2(32 * MapScale, 32 * MapScale),
                         sprite: "assets/sprites/player.png",
+                        death_speed: 0.03,
                         layer: "main",
 
                     },
@@ -103,13 +133,17 @@ export function launch(ctx) {
                             players[i].cell.itemID = undefined;
                             objects_on_field[players[i].cell.x.toString() + players[i].cell.y].destroy();
                         }
-                        if (players[i].health <= 0)
+                        if (players[i].health <= 0) {
+                            players[i].isdead = true
                             players_on_field[i].destroy();
+                            turn_tracker.finishTurn();
+                        }
 
 
                     }
                 );
             turn_tracker = new TurnTracker(() => {
+                if (players[turn_tracker.currentPlayerIndex].isdead) return;
                 if (players[turn_tracker.currentPlayerIndex].isAI === true) {
                     doAITurn(players[turn_tracker.currentPlayerIndex]);
                     turn_tracker.finishTurn();
@@ -184,45 +218,66 @@ export function launch(ctx) {
                                 show_inventory = !show_inventory;
                                 break;
                             case 'ArrowUp':
-                                if (selectedItem !== 0)
-                                    selectedItem--;
+                                if (direction[0]) {
+                                    getItem('4').useItem(players[current_player], {current_player, direction: 0})
+                                    direction[0] = false;
+                                } else {
+                                    if (selectedItem !== 0)
+                                        selectedItem--;
+                                }
+                                break;
+                            case 'ArrowRight':
+                                if (direction[0]) {
+                                    getItem('4').useItem(players[current_player], {current_player, direction: 0})
+                                    direction[0] = false;
+                                }
                                 break;
                             case 'ArrowDown':
-                                if (selectedItem < players[current_player].items.size - 1)
-                                    selectedItem++;
+                                if (direction[0]) {
+                                    getItem('4').useItem(players[current_player], {current_player, direction: 0})
+                                    direction[0] = false;
+                                } else {
+                                    if (selectedItem < players[current_player].items.size - 1)
+                                        selectedItem++;
+                                }
+                                break;
+                            case 'ArrowLeft':
+                                if (direction[0]) {
+                                    getItem('4').useItem(players[current_player], {current_player, direction: 0})
+                                    direction[0] = false;
+                                }
                                 break;
                             case 'KeyE':
                                 let enemy_near = false
                                 let enemy;
                                 if (show_inventory) {
-                                    for (let i of players)
-                                        if ((Math.abs(i.cell.x - players[current_player].cell.x) <= 1) &&
-                                            (Math.abs(i.cell.y - players[current_player].cell.y) <= 1) &&
-                                            i !== players[current_player]) {
-                                            enemy_near = true;
-                                            enemy = i;
-                                        }
+
                                     let itemId = players[current_player].items.keys();
                                     for (let j = 0; j < selectedItem; j++) itemId.next();
-                                    let item = getItem(itemId.next().value);
-                                    let p = {}
-                                    item.useItem(players[current_player],p);
-                                    makeEvent({cmdID: commands.Item, itemID: item.id, p: JSON.stringify(p)});
-                                    selectedItem = 0;
+                                    let item = getItem(itemId.next().value)
+                                    if (!((item.type === 'Magic') && (item.name === "Файрбол"))) {
+                                        item.useItem(players[current_player], {current_player})
+                                        selectedItem = 0;
+                                        makeEvent({cmdID: commands.Item, itemID: item.id, p: JSON.stringify({current_player})});
+                                    }
+                                    else direction[0] = true;
+
+                                    break;
                                 }
-                                break;
+                                if (players[current_player].cell.x !== x || players[current_player].cell.y !== y) {
+                                    makeEvent({
+                                        cmdID: commands.Movement,
+                                        x: players[current_player].cell.x,
+                                        y: players[current_player].cell.y
+                                    });
+                                }
+                                ctx.view.move(players[current_player].fieldCoordinates);
                         }
-                        if (players[current_player].cell.x !== x || players[current_player].cell.y !== y) {
-                            makeEvent({
-                                cmdID: commands.Movement,
-                                x: players[current_player].cell.x,
-                                y: players[current_player].cell.y
-                            });
-                        }
-                        ctx.view.move(players[current_player].fieldCoordinates);
                     }
                 }
             );
+            var direction = [false, -1];
+
             if (!isAiGame) sync();
         };
         this.update = function () {

@@ -102,6 +102,7 @@ class Player {
     constructor(name, isAI) {
         this.name = name;
         this.level = 1;
+        this.isdead = false;
         this.points = 1; //очки навыков
         this.experience = 0;
         this.maxHealth = 100;
@@ -315,11 +316,11 @@ function doAITurn(player) {
     //BFS
     let queue = new Queue();
     let visited = new Map();
-    let has_weapon = false;
+    let has_weapon = check_for_weapon(player);
     queue.enqueue(player.cell);
     let targetCell = undefined;
     let current_target;
-    let current_player=find_player(player)
+    let current_player = find_player(player)
     loop:
         while (!queue.isEmpty()) {
             let u = queue.dequeue();
@@ -335,13 +336,14 @@ function doAITurn(player) {
                             targetCell = gameMap[x][y];
                             break loop;
                         } else {
-                            if(has_weapon){
-                            for (const p of players) {
-                                if (p === player) continue;
-                                if (p.cell === gameMap[x][y]) {
-                                    targetCell = gameMap[x][y];
-                                    break loop;
-                                }}
+                            if (has_weapon) {
+                                for (const p of players) {
+                                    if (p === player) continue;
+                                    if (p.cell === gameMap[x][y]) {
+                                        targetCell = gameMap[x][y];
+                                        break loop;
+                                    }
+                                }
                             }
                         }
                     }
@@ -356,48 +358,47 @@ function doAITurn(player) {
         } else if (cell.y !== targetCell.y) {
             player.move(gameMap[cell.x][cell.y + (targetCell.y < cell.y ? -1 : 1)]);
         }
-        if(player.cell===targetCell){
-            if(has_weapon)
-                has_weapon= check_for_weapon(player)
+        if (player.cell === targetCell) {
+            if (!has_weapon)
+                has_weapon = check_for_weapon(player)
         }
-        if(player.health<player.maxHealth/4){
+        if (player.health < player.maxHealth / 4) {
             let t = check_for_heal()
-            if(t!==-1)
+            if (t !== -1)
                 getItem(i).useItem(player)
         }
-        for (let i of players)
-        if ((Math.abs(i.cell.x - players[current_player].cell.x) <= 1) &&
-            (Math.abs(i.cell.y - players[current_player].cell.y) <= 1) &&
-            i !== players[current_player]) {
-            getItem('1').useItem(players[current_player], {enemy_near:true, enemy:i})
-            break;
-        }
+                getItem('1').useItem(players[current_player])
+                break;
+
 
     }
     //console.log("ИИ сдвинулся на " + player.cell.x + " " + player.cell.y);
 }
-function check_for_weapon (player){
-    let itemId = player.items.keys();
-    for (let  j of player.items.keys())
-        if(j.next().value===1)
+
+function check_for_weapon(player) {
+    for (let j of player.items.keys())
+        if (j === 1)
             return true;
+    return false
 }
-function check_for_heal (player){
-    let itemId = player.items.keys();
-    let i=-1;
-    for (let  j of player.items.keys())
-        if (j.next().value === 3) {
-            i=j.next().value
+
+function check_for_heal(player) {
+    let i = -1;
+    for (let j of player.items.keys())
+        if (j === 3) {
+            i = j
             return i;
         }
 }
-function find_player(player){
-    for (let i = 0; i < players.length ; i++) {
-        if(players[i] === player)
+
+function find_player(player) {
+    for (let i = 0; i < players.length; i++) {
+        if (players[i] === player)
             return i;
     }
 
 }
+
 
 //Абстракция айтемов игры
 //В текущей имплементации Item = ItemType, т.е. в единый момент существует только один объект каждого айтема
@@ -415,7 +416,7 @@ class Item {
             if (cnt === 1) {
                 player.items.delete(this.ID);
             } else {
-                player.items.set(this.ID, players.item.get(this.ID) - 1);
+                player.items.set(this.ID, cnt - 1);
             }
         }
     }
@@ -427,10 +428,12 @@ class Item {
                 player.setArmour(this.value);
                 break;
             case ItemTypes.Weapon:
-                if (p.enemy_near) {
-                    p.enemy.getDamage(player.power)
-                    return;
-                }
+                for (let i of players)
+                    if ((Math.abs(i.cell.x - players[p.current_player].cell.x) <= 1) &&
+                        (Math.abs(i.cell.y - players[p.current_player].cell.y) <= 1) &&
+                        i !== players[p.current_player]) {
+                        i.getDamage(player.power);
+                    }
                 let x = player.cell.x;
                 let y = player.cell.y;
                 let mods = [[0, 0], [0, 1], [1, 0], [1, 1], [0, -1], [-1, 0], [-1, -1], [1, -1], [-1, 1]]
@@ -459,14 +462,14 @@ class Item {
                         player.regeneration();
                         break;
                     case "Файрбол":
-                        player.fireball(enemy);
+                        callListeners(p.current_player, {cmdID: commands.Item, itemId: 4, direction: p.direction})
                         break;
                     case "Создание оружия": //создает случайное оружие
                         let randomWeaponsList = itemTypeList.filter(item => item.type === "Weapon");
                         let randomWeapon = () => {
                             return randomWeaponsList[Math.floor(Math.random() * randomWeaponsList.length)]
                         }
-                        player.pickItem(randomWeapon())
+                        player.pickItem(randomWeapon().ID)
                         break;
                 }
                 break;
