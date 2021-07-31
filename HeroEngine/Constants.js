@@ -7,7 +7,7 @@ const isDebug = false;
 const mapWidth = 50;
 const mapHeight = 50;
 const decorCount = (mapHeight * mapWidth) / 18;
-const itemCount = 10;
+const itemCount = (mapHeight * mapWidth) / 50;
 const monsterCount = 10;
 const AIPlayerCount = 1;
 const MapScale = 1;
@@ -42,6 +42,7 @@ const commands = {
     Disconnected: 4, //Пакет данных содержит cmdID
     Map: 5, //Пакет данных содержит cmdID, gameMap - сериализованный массив карты игры, служит началом игры
     TurnEnd: 6, //Пакет данных содержит cmdID
+    Internal: 7, //Пакет данных для использования внутри приложения
 }
 
 //(Model) Константы для генератора шума

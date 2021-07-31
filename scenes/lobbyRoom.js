@@ -4,9 +4,9 @@ export function launch(ctx) {
         let offset;
         let joinedLobbyState;
         this.init = (args) => {
-            offset = 0;
-            selectedLobby = (joinedLobbyState ? getCurrentPlayerIndex() : 0);
+            offset = 0
             joinedLobbyState = args !== undefined;
+            selectedLobby = (joinedLobbyState ? getCurrentPlayerIndex() : 0);
             if (!joinedLobbyState) networkInit();
             ctx.create_object(this, {
                 position: ctx.vector2(ctx.size.x / 2, ctx.size.y / 10),

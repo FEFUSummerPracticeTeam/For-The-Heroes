@@ -10,16 +10,48 @@ export function launch(ctx) {
             var players_on_field = [];
             var monsters_on_field = [];
             selectedItem = 0;
-            let offset = 0;
+            let createLogger = (text) => {
+                let state = true;
+                let alpha = 0.3;
+                let hue = randomRangeInt(0, 360);
+                let posY = ctx.view.position.y + randomRange(100, 220);
+                ctx.create_object(this, {
+                    text: text,
+                    size: 30,
+                    position: ctx.vector2(ctx.view.position.x + randomRange(900, 1000), ctx.view.position.y + ctx.size / 5),
+                    layer: "text",
+                    alignment: 'right',
+                    color: "black",
+                }, (p) => {
+                    p.color = `hsl(${hue}, 100%, 50%, ${alpha})`;
+                    hue++;
+                    posY -= 0.1;
+                    p.position.y = posY;
+                    if (state) {
+                        alpha += 0.03;
+                        if (alpha >= 1) {
+                            state = false;
+                        }
+                    } else {
+                        alpha -= 0.01;
+                        if (alpha <= 0.1) {
+                            p.destroy();
+                        }
+                    }
+                })
+            };
             gameInitialize((playerIndex, pack) => {
                 switch (pack.cmdID) {
+                    case commands.Internal:
+                        createLogger(pack.text);
+                        break;
                     case commands.Disconnected:
                         ctx.set_scene('lobbySelectRoom');
                         break;
                     case commands.Item:
                         switch (pack.itemID) {
                             case 4:
-                                var fireball = ctx.create_object(this, {
+                                ctx.create_object(this, {
                                         position: ctx.vector2(players[playerIndex].fieldCoordinates.x, players[playerIndex].fieldCoordinates.y),
                                         layer: "main",
                                         size: ctx.vector2(16 * MapScale, 16 * MapScale),
@@ -126,7 +158,7 @@ export function launch(ctx) {
                             ctx.get_layer('text').draw_text({
                                 text: players[i].name,
                                 x: p.position.x + (32 / 2) * MapScale,
-                                y: p.position.y - 12 * MapScale,
+                                y: p.position.y - 6 * MapScale,
                                 size: 15,
                                 color: "black",
                                 alignment: 'center'
@@ -136,16 +168,14 @@ export function launch(ctx) {
                                 y: p.position.y + 5 * MapScale,
                                 height: 5,
                                 width: (players[i].health) / 4,
-                                color: "red",
-                                anchor: true
+                                color: "red"
                             })
                             ctx.get_layer('text').draw_object({
                                 x: p.position.x,
                                 y: p.position.y + 10 * MapScale,
                                 height: 5,
                                 width: (players[i].mana) / 4,
-                                color: "blue",
-                                anchor: true
+                                color: "blue"
                             })
                             if (players[i].cell.itemID !== undefined) {
 
@@ -158,15 +188,12 @@ export function launch(ctx) {
                                 turn_tracker.finishTurn();
                             }
                         }
-
-
                     }
                 );
             turn_tracker = new TurnTracker((turn) => {
                 if (players[turn].isdead) return;
                 if (players[turn].isAI === true) {
-                    doAITurn(players[turn]);
-                    turn_tracker.finishTurn();
+                    doAITurn(players[turn], turn_tracker);
                 }
             }, (turn) => {
                 if (!isAiGame) {
@@ -271,7 +298,7 @@ export function launch(ctx) {
                                 break;
                             case 'KeyE':
                                 if (show_inventory) {
-
+                                    if (players[current_player].isdead === true) break;
                                     let itemId = players[current_player].items.keys();
                                     for (let j = 0; j < selectedItem; j++) itemId.next();
                                     let item = getItem(itemId.next().value)

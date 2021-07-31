@@ -37,7 +37,7 @@ function gameInitialize(gameCallback) {
     //Если игроки уже есть значит мы уже их сделали при получении карты
     if (players.length === 0) {
         for (let i = 0; i < lobbyPlayers.length; i++) {
-            players[i] = new Player(lobbyPlayers[i].name, false);
+            players[i] = new Player(lobbyPlayers[i].name, false, i);
         }
     }
 
@@ -56,7 +56,7 @@ function gameInitialize(gameCallback) {
     //Спаун AI
     if (lobbyPlayers.length <= 1) {
         for (let i = 1; i < lobbyPlayers.length + AIPlayerCount; i++) {
-            players[i] = new Player('AI ' + i, true);
+            players[i] = new Player('AI ' + i, true, i);
             isAiGame = true;
         }
     }
@@ -99,7 +99,7 @@ class Player {
     fieldCoordinates = {x: undefined, y: undefined};
 
     //начальные значения потом изменю
-    constructor(name, isAI) {
+    constructor(name, isAI, index) {
         this.name = name;
         this.level = 1;
         this.isdead = false;
@@ -119,6 +119,7 @@ class Player {
         this.items = new Map(); //Map айтемов игрока, хранит количество по ключам объектов Item
         this.cell = undefined; //объект Cell, на котором стоит данный игрок
         this.isAI = isAI; //Является ли этот игрок ботом
+        this.index = index; //индекс игрока в массиве игроков
     }
 
 
@@ -221,6 +222,10 @@ class Player {
     //Принимает: item - объект типа Item
     //Возвращает: void
     pickItem(item) {
+        callListeners(this.index, {
+            cmdID: commands.Internal,
+            text: `Игрок ${this.name} подобрал ${getItem(item).name}!`
+        });
         let localItem = this.items.get(item);
         if (localItem === undefined) {
             this.items.set(item, 1);
@@ -313,7 +318,7 @@ class Monster {
 //Осуществляет ход ИИ
 //Принимает: Player - за какого игрока делать ход
 //Возвращает: void
-function doAITurn(player) {
+function doAITurn(player, turnTracker) {
     //BFS
     let queue = new Queue();
     let visited = new Map();
@@ -340,7 +345,7 @@ function doAITurn(player) {
                         } else {
                             if (has_weapon) {
                                 for (const p of players) {
-                                    if(p.isdead) continue;
+                                    if (p.isdead) continue;
                                     if (p === player) continue;
                                     if (p.cell === gameMap[x][y]) {
                                         targetCell = gameMap[x][y];
@@ -355,7 +360,9 @@ function doAITurn(player) {
             }
             //BFS END
         }
-    for (let i = 0; i < player.speed; i++) {
+    let aiSteps = 5;
+    let i = 0;
+    let interval = setInterval(() => {
         let cell = player.cell;
         if (cell.x !== targetCell.x) {
             player.move(gameMap[cell.x + (targetCell.x < cell.x ? -1 : 1)][cell.y]);
@@ -369,14 +376,16 @@ function doAITurn(player) {
         if (player.health < player.maxHealth / 4) {
             let t = check_for_heal(player)
             if (t !== -1)
-                getItem(i).useItem(player)
+                getItem(t).useItem(player)
         }
-        if(current_target===2 && Math.abs(cell.x-targetCell.x)<2 && Math.abs(cell.y-targetCell.y)<2 && has_weapon)
-                getItem('1').useItem(players[current_player],{current_player})
-                break;
-
-
-    }
+        if (current_target === 2 && Math.abs(cell.x - targetCell.x) < 2 && Math.abs(cell.y - targetCell.y) < 2 && has_weapon)
+            getItem('1').useItem(players[current_player], {current_player})
+        i++;
+        if (i === aiSteps) {
+            clearInterval(interval);
+            turnTracker.finishTurn();
+        }
+    }, 200);
     //console.log("ИИ сдвинулся на " + player.cell.x + " " + player.cell.y);
 }
 
@@ -394,6 +403,7 @@ function check_for_heal(player) {
             i = j
             return i;
         }
+    return i;
 }
 
 function find_player(player) {
@@ -428,6 +438,10 @@ class Item {
 
     //При его использовании мы делаем что-то в соответствии с его типом
     useItem(player, p) {
+        callListeners(player.index, {
+            cmdID: commands.Internal,
+            text: `Игрок ${player.name} использовал ${this.name}!`
+        });
         switch (this.type) {
             case ItemTypes.Armour:
                 player.setArmour(this.value);
@@ -681,7 +695,7 @@ function cmdHandler(playerIndex, ev) { //playerIndex - индекс игрока
 
             let pos = JSON.parse(ev.playerPos);
             for (let i = 0; i < lobbyPlayers.length; i++) {
-                players[i] = new Player(lobbyPlayers[i].name, false);
+                players[i] = new Player(lobbyPlayers[i].name, false, i);
                 players[i].move(gameMap[pos[i].x][pos[i].y]);
             }
             break;
@@ -693,7 +707,7 @@ function cmdHandler(playerIndex, ev) { //playerIndex - индекс игрока
         case commands.TurnEnd:
             break;
         case commands.Item:
-            if(ev.p === undefined) return;
+            if (ev.p === undefined) return;
             getItem(ev.itemID).useItem(players[playerIndex], JSON.parse(ev.p));
             break;
         case commands.Movement:
