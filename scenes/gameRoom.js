@@ -8,6 +8,7 @@ export function launch(ctx) {
         this.init = function () {
             var objects_on_field = [];
             var players_on_field = [];
+            var monsters_on_field = [];
             selectedItem = 0;
             let offset = 0;
             gameInitialize((playerIndex, pack) => {
@@ -26,19 +27,37 @@ export function launch(ctx) {
                                         death_speed: 0.03,
                                     },
                                     (p) => {
-                                        switch (direction) {
-                                            case 0:
-                                                p.move(0, -1);
-                                                break
-                                            case 1:
-                                                p.move(1, 0);
-                                                break
-                                            case 2:
-                                                p.move(0, 1);
-                                                break
-                                            case 3:
-                                                p.move(-1, 0);
-                                                break
+                                        if (!p.isDying && p.IsInView()) {
+                                            console.log(p.position)
+                                            switch (pack.direction) {
+                                                case 0:
+                                                    p.move(ctx.vector2(0, -10));
+                                                    break
+                                                case 1:
+                                                    p.move(ctx.vector2(10, 0));
+                                                    break
+                                                case 2:
+                                                    p.move(ctx.vector2(0, 10));
+                                                    break
+                                                case 3:
+                                                    p.move(ctx.vector2(-10, 0));
+                                                    break
+                                            }
+                                            for (let i = 0; i <players_on_field.length ; i++) {
+                                                if (players_on_field[i].isCollision(p) && pack.player!==players[i]){
+                                                    players[i].getDamage(pack.player.power);
+                                                    p.destroy();
+                                                }
+                                            }
+                                            for (let i = 0; i <mapWidth-1 ; i++) {
+                                                for (let j = 0; j <mapHeight-1 ; j++) {
+                                                    if(gameMap[i][j].monsterID!==undefined)
+                                                        if(monsters_on_field[i.toString() + j].isCollision(p)){
+                                                            gameMap[i][j].monster.getDamage(pack.player.power,pack.player,magic_attack)
+                                                            p.destroy();
+                                                        }
+                                                }
+                                            }
                                         }
                                     }
                                 )
@@ -74,7 +93,7 @@ export function launch(ctx) {
                             layer: "decorations",
                         });
                     if (gameMap[i][j].monsterID !== undefined)
-                        objects_on_field[i.toString() + j] = ctx.create_object(this, {
+                        monsters_on_field[i.toString() + j] = ctx.create_object(this, {
                                 position: ctx.vector2(game_map[i][j].x * 32 * MapScale, game_map[i][j].y * 32 * MapScale),
                                 size: ctx.vector2(24 * MapScale, 24 * MapScale),
                                 sprite: getMonster(gameMap[i][j].monsterID).sprite,
@@ -90,7 +109,7 @@ export function launch(ctx) {
                                     anchor: true
                                 })
                                 if (gameMap[i][j].monster.health <= 0)
-                                    objects_on_field[i.toString() + j].destroy();
+                                    p.destroy();
                             }
                         );
                 }
@@ -99,11 +118,12 @@ export function launch(ctx) {
                         position: players[i].fieldCoordinates,
                         size: ctx.vector2(32 * MapScale, 32 * MapScale),
                         sprite: "assets/sprites/player.png",
-                        death_speed: 0.03,
+                        death_speed: 0.003,
                         layer: "main",
 
                     },
                     (p) => {
+                    if(!p.isDying) {
                         ctx.get_layer('text').draw_text({
                             text: players[i].name,
                             x: p.position.x + (32 / 2) * MapScale,
@@ -135,9 +155,10 @@ export function launch(ctx) {
                         }
                         if (players[i].health <= 0) {
                             players[i].isdead = true
-                            players_on_field[i].destroy();
+                            p.destroy();
                             turn_tracker.finishTurn();
                         }
+                    }
 
 
                     }
@@ -228,13 +249,13 @@ export function launch(ctx) {
                                 break;
                             case 'ArrowRight':
                                 if (direction[0]) {
-                                    getItem('4').useItem(players[current_player], {current_player, direction: 0})
+                                    getItem('4').useItem(players[current_player], {current_player, direction: 1})
                                     direction[0] = false;
                                 }
                                 break;
                             case 'ArrowDown':
                                 if (direction[0]) {
-                                    getItem('4').useItem(players[current_player], {current_player, direction: 0})
+                                    getItem('4').useItem(players[current_player], {current_player, direction: 2})
                                     direction[0] = false;
                                 } else {
                                     if (selectedItem < players[current_player].items.size - 1)
@@ -243,13 +264,11 @@ export function launch(ctx) {
                                 break;
                             case 'ArrowLeft':
                                 if (direction[0]) {
-                                    getItem('4').useItem(players[current_player], {current_player, direction: 0})
+                                    getItem('4').useItem(players[current_player], {current_player, direction: 3})
                                     direction[0] = false;
                                 }
                                 break;
                             case 'KeyE':
-                                let enemy_near = false
-                                let enemy;
                                 if (show_inventory) {
 
                                     let itemId = players[current_player].items.keys();
