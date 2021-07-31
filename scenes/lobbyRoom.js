@@ -5,7 +5,7 @@ export function launch(ctx) {
         let joinedLobbyState;
         this.init = (args) => {
             offset = 0;
-            selectedLobby = joinedLobbyState ? getCurrentPlayerIndex() : 0;
+            selectedLobby = (joinedLobbyState ? getCurrentPlayerIndex() : 0);
             joinedLobbyState = args !== undefined;
             if (!joinedLobbyState) networkInit();
             ctx.create_object(this, {
@@ -14,10 +14,25 @@ export function launch(ctx) {
                 size: 50,
                 text: joinedLobbyState ? 'Лобби ' + joinedLobby.name : 'Выберите лобби',
             });
-            !joinedLobbyState ? ctx.create_object(this, {
+            ctx.create_object(this, {
                 position: ctx.vector2(ctx.size.x / 50, ctx.size.y / 7),
                 size: 20,
+                color: 'black',
+                text: (joinedLobbyState && shouldGenerateField()) ? 'Нажмите Enter чтобы начать игру' : (joinedLobbyState ? '' : 'Нажмите Enter чтобы войти в лобби'),
+                alignment: 'left'
+            });
+            !joinedLobbyState ? ctx.create_object(this, {
+                position: ctx.vector2(ctx.size.x / 50, ctx.size.y / 30),
+                size: 20,
+                color: 'black',
+                text: 'Нажмите R чтобы обновить список',
+                alignment: 'left'
+            }) : null;
+            !joinedLobbyState ? ctx.create_object(this, {
+                position: ctx.vector2(ctx.size.x - ctx.size.x / 50, ctx.size.y / 30),
+                size: 20,
                 text: 'Используйте стрелки для навигации',
+                alignment: 'right'
             }) : null;
             ctx.create_object(this, {
                 position: ctx.vector2(ctx.size.x - ctx.size.x / 50, ctx.size.y / 7),
@@ -77,6 +92,10 @@ export function launch(ctx) {
                                         ctx.set_scene('gameRoom', 'connected');
                                     }
                                 }
+                                break;
+                            case 'KeyR':
+                                refreshLobbies();
+                                break;
                         }
                 }
             };
@@ -86,16 +105,6 @@ export function launch(ctx) {
         this.draw = function () {
             let toQuery = joinedLobbyState ? lobbyPlayers : lobbyList;
             let yOff = ctx.size.y / 5;
-            if (joinedLobbyState && shouldGenerateField()) {
-                ctx.get_layer('text').draw_text({
-                    x: ctx.size.x / 50,
-                    y: ctx.size.y / 7,
-                    size: 20,
-                    color: 'black',
-                    text: 'Нажмите Enter чтобы начать игру',
-                    alignment: 'left'
-                });
-            }
             for (let i = 0; i < 10; i++, yOff += 50) {
                 if (toQuery[i + offset] === undefined) break;
                 ctx.get_layer('text').draw_text({

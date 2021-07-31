@@ -20,7 +20,7 @@ export function launch(ctx) {
             var game_map = getGameMap();
             for (let i = 0; i < mapWidth; i++)
                 for (let j = 0; j < mapHeight; j++) {
-                    if(getCellType(gameMap[i][j].cellTypeID) === undefined)
+                    if (getCellType(gameMap[i][j].cellTypeID) === undefined)
                         console.log(gameMap[i][j].cellTypeID)
                     ctx.create_object(this, {
                         position: ctx.vector2(game_map[i][j].x * 32 * MapScale, game_map[i][j].y * 32 * MapScale),
@@ -148,19 +148,19 @@ export function launch(ctx) {
                         switch (e.code) {
                             case 'KeyW':
                                 if (y > 0)
-                                    players[current_player].move(game_map[x][--y]);
+                                    players[current_player].move(game_map[x][y - 1]);
                                 break;
                             case 'KeyS':
                                 if (y < mapHeight - 1)
-                                    players[current_player].move(game_map[x][++y]);
+                                    players[current_player].move(game_map[x][y + 1]);
                                 break;
                             case 'KeyD':
                                 if (x < mapWidth - 1)
-                                    players[current_player].move(game_map[++x][y]);
+                                    players[current_player].move(game_map[x + 1][y]);
                                 break;
                             case 'KeyA':
                                 if (x > 0)
-                                    players[current_player].move(game_map[--x][y]);
+                                    players[current_player].move(game_map[x - 1][y]);
                                 break;
                             case 'KeyI':
                                 show_inventory = !show_inventory;

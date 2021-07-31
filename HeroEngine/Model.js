@@ -350,7 +350,6 @@ function doAITurn(player) {
             player.move(gameMap[cell.x][cell.y + (targetCell.y < cell.y ? -1 : 1)]);
         }
     }
-    console.log("ИИ сдвинулся на " + player.cell.x + " " + player.cell.y);
 }
 
 //Абстракция айтемов игры
@@ -468,7 +467,6 @@ class TurnTracker {
             if (this.timeLeft === 0) {
                 this.finishTurn();
             }
-            console.log("Ходит игрок " + this.currentPlayerIndex + ", у него " + this.timeLeft + " секунд");
         }, 1000);
         this.onTurnStartCallback(this.currentPlayerIndex);
     }

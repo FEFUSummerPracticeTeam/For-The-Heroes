@@ -14,8 +14,8 @@ let lobbyPlayers;
 let eventCallbacks = [];
 //Значение синхронизации
 let syncCounter = 0;
-//Флажок для одноразовой инцииализации коллбеков
-let isCallbackInit = false;
+//Массив текущих установленных коллбеков на игроков
+let callbackRefs = [];
 
 //Инициализация network-стека движка, должна выполняться сразу перед взаимодействием с онлайн частью
 //Принимает:
@@ -64,16 +64,15 @@ function joinLobby(playerName, lobbyToJoin, onNewCommandListener, onNewConnectio
         lobbyPlayers.sort((p1, p2) => {
             return p1.id.localeCompare(p2.id);
         });
-        for (const lobby of lobbyList) {
-            if (lobby.id === lobbyID) {
-                joinedLobby = lobby;
-                break;
+        if (callbackRefs.length === 0) {
+            for (const lobby of lobbyList) {
+                if (lobby.id === lobbyID) {
+                    joinedLobby = lobby;
+                    break;
+                }
             }
         }
-        if(!isCallbackInit){
-            initEventCallback();
-            isCallbackInit = true;
-        }
+        initEventCallback();
         if (onNewConnectionListener !== undefined) {
             onNewConnectionListener(getLobbyPlayers());
         }
@@ -99,11 +98,41 @@ function refreshLobbies(onRefreshDoneListener) {
 //Принимает: void
 //Возвращает: void
 function leaveLobby() {
-    isCallbackInit = false;
+    callbackRefs = []
     joinedLobby = undefined;
+    if (lobbyPlayers.length === 1)
+        cleanLobby(lobbyID);
+    else {
+        makeEvent({cmdID: 4});
+        cleanPlayerData(lobbyID, playerID);
+    }
+    playerID = undefined;
     lobbyID = undefined;
-    if (lobbyPlayers.length === 1) database.ref('lobbies/' + lobbyID).remove();
-    database.ref('players/' + lobbyID + '/' + playerID).remove();
+}
+
+//Очистка лобби по ID
+//Принимает: lobbyID - ID лобби для удаления
+//Возвращает: void
+function cleanLobby(lobbyID) {
+    let updates = {};
+    updates['lobbies/' + lobbyID] = null;
+    updates['players/' + lobbyID] = null;
+    updates['sync/' + lobbyID] = null;
+    updates['events/' + lobbyID] = null;
+    firebase.database().ref().update(updates);
+    refreshLobbies();
+}
+
+//Очистка данных игрока в лобби по ID
+//Принимает: lobbyID, playerID - ID лобби для очистки
+//Возвращает: void
+function cleanPlayerData(lobbyID, playerID) {
+    let updates = {};
+    updates['lobbies/' + lobbyID + '/' + playerID] = null;
+    updates['players/' + lobbyID + '/' + playerID] = null;
+    updates['sync/' + lobbyID + '/' + playerID] = null;
+    updates['events/' + lobbyID + '/' + playerID] = null;
+    firebase.database().ref().update(updates);
 }
 
 //Очистка старых лобби (старее чем полчаса) (запускать только после хотя бы одного refreshLobbies())
@@ -121,7 +150,7 @@ function cleanOldLobbies() {
                 needsWriting = true;
                 for (const lobby of lobbyList) {
                     if ((timestamp - lobby.creationDate) > oneDay) {
-                        database.ref('lobbies/' + lobby.id).remove();
+                        cleanLobby(lobby.id);
                     }
                 }
             }
@@ -148,7 +177,9 @@ function shouldGenerateField() {
 function getCurrentPlayerIndex() {
     if (isDebug) return 0
     for (let i = 0; i < getLobbyPlayers().length; i++) {
-        if (lobbyPlayers[i].id === playerID) return i;
+        if (lobbyPlayers[i].id.localeCompare(playerID) === 0) {
+            return i;
+        }
     }
     return -1;
 }
@@ -181,14 +212,20 @@ function getLobbyPlayers() {
     return lobbyPlayers;
 }
 
-//Инициализирует коллбек-систему событий игроков
+//Инициализирует коллбек-систему событий игроков, должно вызываться при каждом изм. кол-ва участников
 //Принимает: void
 //Возвращает: void
 function initEventCallback() {
+    for (const callbackRef of callbackRefs) {
+        database.ref(callbackRef).off();
+    }
+    callbackRefs = []
     for (const prop of lobbyPlayers) {
         //проверка на то, что мы не итерируем поля прототипов и не делаем коллбек на этого игрока
         if (prop.id === playerID) continue;
-        database.ref('events/' + lobbyID + '/' + prop.id).on('child_added', (data) => {
+        let ref = 'events/' + lobbyID + '/' + prop.id;
+        callbackRefs.push(ref);
+        database.ref(ref).on('child_added', (data) => {
             for (let i = 0; i < lobbyPlayers.length; i++) {
                 if (lobbyPlayers[i].id === prop.id) {
                     callListeners(i, data.val());
@@ -231,7 +268,7 @@ function addEventCallback(callback) {
 //Принимает: пакет Object с данными согласно описанию в Constants.js
 //Возвращает: void
 function makeEvent(data) {
-    if(!isAiGame){
+    if (!isAiGame) {
         let eventRef = database.ref('events/' + lobbyID + '/' + playerID).push();
         eventRef.set(data);
     }

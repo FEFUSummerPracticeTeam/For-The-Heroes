@@ -4,8 +4,8 @@
 const isDebug = false;
 
 //(Model) Парметры карты
-const mapWidth = 50;
-const mapHeight = 50;
+const mapWidth = 30;
+const mapHeight = 30;
 const decorCount = (mapHeight * mapWidth) / 18;
 const itemCount = 10;
 const monsterCount = 10;
