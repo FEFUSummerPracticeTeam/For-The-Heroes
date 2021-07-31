@@ -211,7 +211,7 @@ class Player {
         this.cell = cell;
         this.fieldCoordinates.x = this.cell.x * 32 * MapScale;
         this.fieldCoordinates.y = this.cell.y * 32 * MapScale;
-        if (cell.itemID !== undefined) {
+        if (cell.itemID !== undefined && !this.isdead) {
             this.pickItem(cell.itemID)
         }
     }
@@ -335,13 +335,16 @@ function doAITurn(player) {
                         queue.enqueue(gameMap[x][y]);
                         if (gameMap[x][y].itemID !== undefined) {
                             targetCell = gameMap[x][y];
+                            current_target = 1;
                             break loop;
                         } else {
                             if (has_weapon) {
                                 for (const p of players) {
+                                    if(p.isdead) continue;
                                     if (p === player) continue;
                                     if (p.cell === gameMap[x][y]) {
                                         targetCell = gameMap[x][y];
+                                        current_target = 2;
                                         break loop;
                                     }
                                 }
@@ -364,12 +367,13 @@ function doAITurn(player) {
                 has_weapon = check_for_weapon(player)
         }
         if (player.health < player.maxHealth / 4) {
-            let t = check_for_heal()
+            let t = check_for_heal(player)
             if (t !== -1)
                 getItem(i).useItem(player)
         }
-        getItem('1').useItem(players[current_player], {current_player})
-        break;
+        if(current_target===2 && Math.abs(cell.x-targetCell.x)<2 && Math.abs(cell.y-targetCell.y)<2 && has_weapon)
+                getItem('1').useItem(players[current_player],{current_player})
+                break;
 
 
     }

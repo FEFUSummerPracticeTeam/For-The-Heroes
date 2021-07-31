@@ -20,7 +20,7 @@ export function launch(ctx) {
                         switch (pack.itemID) {
                             case 4:
                                 var fireball = ctx.create_object(this, {
-                                        position: ctx.vector2(players[current_player].fieldCoordinates.x, players[current_player].fieldCoordinates.y),
+                                        position: ctx.vector2(players[playerIndex].fieldCoordinates.x, players[playerIndex].fieldCoordinates.y),
                                         layer: "main",
                                         size: ctx.vector2(16 * MapScale, 16 * MapScale),
                                         sprite: "assets/sprites/magic_fireball.png",
