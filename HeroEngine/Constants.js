@@ -1,7 +1,7 @@
 //Часть движка, хранящая константы/enum
 
 //Переменная, кроющая часть ошибок на время дебага
-const isDebug = true;
+const isDebug = false;
 
 //(Model) Парметры карты
 const mapWidth = 25;

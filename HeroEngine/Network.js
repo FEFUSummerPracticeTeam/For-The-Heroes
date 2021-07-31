@@ -12,6 +12,8 @@ let lobbyID;
 let lobbyPlayers;
 //Список листенеров на ивенты с сервера
 let eventCallbacks = [];
+//Значение синхронизации
+let syncCounter = 0;
 
 //Инициализация network-стека движка, должна выполняться сразу перед взаимодействием с онлайн частью
 //Принимает:
@@ -134,7 +136,10 @@ function shouldGenerateField() {
 //Принимает: void
 //Возвращает: number - номер текущего игрока
 function getCurrentPlayerIndex() {
-    return isDebug ? 0 : getLobbyPlayers().indexOf(item => item.id === playerID);
+    for (let i = 0; i < getLobbyPlayers().length; i++) {
+        if (lobbyPlayers[i].id === playerID) return i;
+    }
+    return -1;
 }
 
 //Получение списка лобби
@@ -173,15 +178,31 @@ function initEventCallback() {
         //проверка на то, что мы не итерируем поля прототипов и не делаем коллбек на этого игрока
         if (!lobbyPlayers.hasOwnProperty(prop) || prop.localeCompare(playerID) === 0) continue;
         database.ref('events/' + lobbyID + '/' + prop).on('child_added', (data) => {
-            let i = getLobbyPlayers().indexOf(item => item.id === prop);
-            callListeners(i, data);
+            for (let i = 0; i < lobbyPlayers.length; i++) {
+                if (lobbyPlayers[i] === prop) {
+                    callListeners(i, data.val());
+                }
+            }
         });
     }
+}
+
+function sync(establishing){
+    let updates = {};
+    updates[`events/${lobbyID}/sync`] = establishing ? 0 : firebase.database.ServerValue.increment(1);
+    firebase.database().ref().update(updates);
+}
+
+function updateSyncValue(){
+    database.ref('events/' + lobbyID + '/' + 'sync').on('child_changed', (data) => {
+        syncCounter = data.val();
+    });
 }
 
 //Позволяет вызвать все листенеры ивентов со своими параметрами
 //Принимает: i - индекс игрока, осущ. действие, data - пакет данных действия
 //Возвращает: void
+
 function callListeners(i, data) {
     for (const callback of eventCallbacks) {
         callback(i, data);

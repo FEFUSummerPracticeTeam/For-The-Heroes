@@ -62,12 +62,16 @@ export function launch(ctx) {
                             case 'Enter':
                                 if (!joinedLobbyState) {
                                     let once = true;
-                                    joinLobby(playerName, lobbyList[selectedLobby].id, undefined, () => {
+                                    joinLobby(playerName, lobbyList[selectedLobby + offset].id, undefined, () => {
                                         if (once) {
                                             once = false;
-                                            ctx.set_scene('gameRoom', 'connected');
+                                            ctx.set_scene('lobbySelectRoom', 'connected');
                                         }
                                     });
+                                } else {
+                                    if (shouldGenerateField()) {
+                                        ctx.set_scene('gameRoom', 'connected');
+                                    }
                                 }
                         }
                 }
@@ -78,6 +82,16 @@ export function launch(ctx) {
         this.draw = function () {
             let toQuery = joinedLobbyState ? lobbyPlayers : lobbyList;
             let yOff = ctx.size.y / 5;
+            if (joinedLobbyState && shouldGenerateField()) {
+                ctx.get_layer('text').draw_text({
+                    x: ctx.size.x / 50,
+                    y: ctx.size.y / 7,
+                    size: 20,
+                    color: 'black',
+                    text: 'Нажмите Enter чтобы начать игру',
+                    alignment: 'left'
+                });
+            }
             for (let i = 0; i < 10; i++, yOff += 50) {
                 if (toQuery[i + offset] === undefined) break;
                 ctx.get_layer('text').draw_text({

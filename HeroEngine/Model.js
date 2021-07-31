@@ -14,11 +14,16 @@ const decorTypeList = [];
 const monsterTypeList = [];
 //2D Array - массив всего поля игры, получение через getGameMap()
 let gameMap = [];
+//Быстрый способ получить есть ли в игре AI
+let isAiGame = false;
 
 //Функция, инициализирующая игру, должна вызываться на старте игровой комнаты
 //Принимает: gameCallback - обработчик событий игры в соответствии с Constants.commands
 //Возвращает: void
 function gameInitialize(gameCallback) {
+    //INIT
+    isAiGame = false;
+    //INIT
     if (isDebug) {
         doDebugGame();
     }
@@ -32,7 +37,9 @@ function gameInitialize(gameCallback) {
             cmdID: commands.Map,
             gameMap: getGameMap()
         });
+        sync(true);
     }
+    updateSyncValue();
     let lobbyPlayers = getLobbyPlayers();
     for (let i = 0; i < lobbyPlayers.length; i++) {
         players[i] = new Player(lobbyPlayers[i].name, false);
@@ -47,11 +54,11 @@ function gameInitialize(gameCallback) {
 
             }
         }
-
     }
     if (lobbyPlayers.length <= 1) {
         for (let i = 1; i < lobbyPlayers.length + AIPlayerCount; i++) {
             players[i] = new Player('AI ' + i, true);
+            isAiGame = true;
         }
     }
     for (let i of players) i.move(gameMap [[randomRangeInt(0, mapWidth), randomRangeInt(0, mapWidth)]]);
@@ -421,6 +428,7 @@ class TurnTracker {
     currentPlayerIndex; //хранит индекс в массиве того, чей будет ход
 
     constructor(onTurnStartCallback, onTurnEndCallback) { //хранит индекс в массиве того, чей был/будет ход
+        this.currentPlayerIndex = -1;
         this.onTurnStartCallback = onTurnStartCallback;
         this.onTurnEndCallback = onTurnEndCallback;
         this.timePerTurn = 6 / players.length;

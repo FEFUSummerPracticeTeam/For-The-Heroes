@@ -1,8 +1,9 @@
 export function launch(ctx) {
 
     let scene = ctx.create_scene('nameEnterRoom', function () {
-        let name = '';
+        let name;
         this.init = (args) => {
+            name = '';
             let upperLabel = ctx.create_object(this, {
                 size: 50,
                 position: ctx.vector2(ctx.size.x / 2, ctx.size.y / 2),
