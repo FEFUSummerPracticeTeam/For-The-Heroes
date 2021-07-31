@@ -41,7 +41,10 @@ function gameInitialize(gameCallback) {
         for (let j = 0; j < mapHeight; j++) {
             if (gameMap[[i, j]].monsterID !== undefined) {
                 gameMap[[i, j]].monster = {};
+
                 Object.assign(gameMap[[i, j]].monster, getMonster(gameMap[[i, j]].monsterID));
+                Object.setPrototypeOf(gameMap[[i, j]].monster,Monster.prototype);
+
             }
         }
 
@@ -352,14 +355,19 @@ class Item {
                 }
                 let x = player.cell.x;
                 let y = player.cell.y;
-                if(inBounds(x,y+1)&&getMonster(gameMap[[x,y+1]])!==undefined){ getMonster(gameMap[[x,y+1]]).getDamage(player.power,player);return}
-                if(inBounds(x+1,y)&&getMonster(gameMap[[x+1,y]])!==undefined){ getMonster(gameMap[[x+1,y]]).getDamage(player.power,player);return}
-                if(inBounds(x,y-1)&&getMonster(gameMap[[x,y-1]])!==undefined){ getMonster(gameMap[[x,y-1]]).getDamage(player.power,player);return}
-                if(inBounds(x-1,y)&&getMonster(gameMap[[x-1,y]])!==undefined){ getMonster(gameMap[[x-1,y]]).getDamage(player.power,player);return}
-                if(inBounds(x+1,y+1)&&getMonster(gameMap[[x+1,y+1]])!==undefined){ getMonster(gameMap[[x+1,y+1]]).getDamage(player.power,player);return}
-                if(inBounds(x+1,y-1)&&getMonster(gameMap[[x+1,y-1]])!==undefined){ getMonster(gameMap[[x+1,y-1]]).getDamage(player.power,player);return}
-                if(inBounds(x+1,y-1)&&getMonster(gameMap[[x+1,y-1]])!==undefined){ getMonster(gameMap[[x+1,y-1]]).getDamage(player.power,player);return}
-                if(inBounds(x-1,y-1)&&getMonster(gameMap[[x-1,y-1]])!==undefined){ getMonster(gameMap[[x-1,y-1]]).getDamage(player.power,player);return}
+                let mods = [[0,0],[0,1],[1,0],[1,1],[0,-1],[-1,0],[-1,-1],[1,-1],[-1,1]]
+                for (let i = 0; i < 9; i++) {
+                    if(inBounds(x+mods[i][0],y+mods[i][1],mapWidth,mapHeight)){
+                        let cel = gameMap[[x+mods[i][0],y+mods[i][1]]]
+                        if(cel.monsterID!==undefined){
+                            cel.monster.getDamage(player.power,player);
+                            return;
+                        }
+                    }
+
+                }
+
+
                 break;
             case ItemTypes.HPHealing:
                 player.getHealth(this.value);

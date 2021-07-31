@@ -65,7 +65,7 @@ export function launch(ctx) {
                                     joinLobby(playerName, lobbyList[selectedLobby].id, undefined, () => {
                                         if (once) {
                                             once = false;
-                                            ctx.set_scene('lobbySelectRoom', 'connected');
+                                            ctx.set_scene('gameRoom', 'connected');
                                         }
                                     });
                                 }
