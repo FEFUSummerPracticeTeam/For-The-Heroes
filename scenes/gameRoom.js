@@ -142,13 +142,13 @@ export function launch(ctx) {
 
                     }
                 );
-            turn_tracker = new TurnTracker(() => {
-                if (players[turn_tracker.currentPlayerIndex].isdead) return;
-                if (players[turn_tracker.currentPlayerIndex].isAI === true) {
-                    doAITurn(players[turn_tracker.currentPlayerIndex]);
+            turn_tracker = new TurnTracker((turn) => {
+                if (players[turn].isdead) return;
+                if (players[turn].isAI === true) {
+                    doAITurn(players[turn]);
                     turn_tracker.finishTurn();
                 }
-            }, () => {
+            }, (turn) => {
                 if (!isAiGame) {
                     if (turn_tracker.turnCnt + 1 % players.length === current_player) {
                         cleanCachedEvents(playerID);
@@ -186,7 +186,7 @@ export function launch(ctx) {
                     opacity: 0.95,
                 },
                 (p) => {
-                    p.text = waitingForSync || turn_tracker.currentPlayerIndex ? 'Ожидание игроков... ' : (current_player === turn_tracker.currentPlayerIndex ? 'Сейчас ВАШ ход!' : 'Сейчас ход ' + players[turn_tracker.currentPlayerIndex].name);
+                    p.text = waitingForSync || turn_tracker.currentPlayerIndex === -1 ? 'Ожидание игроков... ' : (current_player === turn_tracker.currentPlayerIndex ? 'Сейчас ВАШ ход!' : 'Сейчас ход ' + players[turn_tracker.currentPlayerIndex].name);
                     p.opacity += p.death_speed;
                     if ((p.opacity < 0.1) || (p.opacity > 0.96)) p.death_speed *= (-1);
                     p.position = ctx.vector2(ctx.view.position.x + ctx.size.x / 2, ctx.view.position.y + ctx.size.y / 10);
@@ -258,21 +258,20 @@ export function launch(ctx) {
                                     if (!((item.type === 'Magic') && (item.name === "Файрбол"))) {
                                         item.useItem(players[current_player], {current_player})
                                         selectedItem = 0;
-                                        makeEvent({cmdID: commands.Item, itemID: item.id, p: JSON.stringify({current_player})});
+                                        makeEvent({cmdID: commands.Item, itemID: item.ID, p: JSON.stringify({current_player})});
                                     }
                                     else direction[0] = true;
-
-                                    break;
                                 }
-                                if (players[current_player].cell.x !== x || players[current_player].cell.y !== y) {
-                                    makeEvent({
-                                        cmdID: commands.Movement,
-                                        x: players[current_player].cell.x,
-                                        y: players[current_player].cell.y
-                                    });
-                                }
-                                ctx.view.move(players[current_player].fieldCoordinates);
+                            break;
                         }
+                        if (players[current_player].cell.x !== x || players[current_player].cell.y !== y) {
+                            makeEvent({
+                                cmdID: commands.Movement,
+                                x: players[current_player].cell.x,
+                                y: players[current_player].cell.y
+                            });
+                        }
+                        ctx.view.move(players[current_player].fieldCoordinates);
                     }
                 }
             );

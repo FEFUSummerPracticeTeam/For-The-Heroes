@@ -367,8 +367,8 @@ function doAITurn(player) {
             if (t !== -1)
                 getItem(i).useItem(player)
         }
-                getItem('1').useItem(players[current_player])
-                break;
+        getItem('1').useItem(players[current_player], {current_player});
+        break;
 
 
     }
@@ -682,7 +682,7 @@ function cmdHandler(playerIndex, ev) { //playerIndex - индекс игрока
         case commands.TurnEnd:
             break;
         case commands.Item:
-
+            getItem(ev.itemID).useItem(players[playerIndex], JSON.parse(ev.p));
             break;
         case commands.Movement:
             if (gameMap.length === 0) break;
