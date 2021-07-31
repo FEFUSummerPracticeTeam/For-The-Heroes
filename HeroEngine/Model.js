@@ -315,8 +315,11 @@ function doAITurn(player) {
     //BFS
     let queue = new Queue();
     let visited = new Map();
+    let has_weapon = false;
     queue.enqueue(player.cell);
     let targetCell = undefined;
+    let current_target;
+    let current_player=find_player(player)
     loop:
         while (!queue.isEmpty()) {
             let u = queue.dequeue();
@@ -332,12 +335,13 @@ function doAITurn(player) {
                             targetCell = gameMap[x][y];
                             break loop;
                         } else {
+                            if(has_weapon){
                             for (const p of players) {
                                 if (p === player) continue;
                                 if (p.cell === gameMap[x][y]) {
                                     targetCell = gameMap[x][y];
                                     break loop;
-                                }
+                                }}
                             }
                         }
                     }
@@ -352,7 +356,47 @@ function doAITurn(player) {
         } else if (cell.y !== targetCell.y) {
             player.move(gameMap[cell.x][cell.y + (targetCell.y < cell.y ? -1 : 1)]);
         }
+        if(player.cell===targetCell){
+            if(has_weapon)
+                has_weapon= check_for_weapon(player)
+        }
+        if(player.health<player.maxHealth/4){
+            let t = check_for_heal()
+            if(t!==-1)
+                getItem(i).useItem(player)
+        }
+        for (let i of players)
+        if ((Math.abs(i.cell.x - players[current_player].cell.x) <= 1) &&
+            (Math.abs(i.cell.y - players[current_player].cell.y) <= 1) &&
+            i !== players[current_player]) {
+            getItem('1').useItem(players[current_player], {enemy_near:true, enemy:i})
+            break;
+        }
+
     }
+    //console.log("ИИ сдвинулся на " + player.cell.x + " " + player.cell.y);
+}
+function check_for_weapon (player){
+    let itemId = player.items.keys();
+    for (let  j of player.items.keys())
+        if(j.next().value===1)
+            return true;
+}
+function check_for_heal (player){
+    let itemId = player.items.keys();
+    let i=-1;
+    for (let  j of player.items.keys())
+        if (j.next().value === 3) {
+            i=j.next().value
+            return i;
+        }
+}
+function find_player(player){
+    for (let i = 0; i < players.length ; i++) {
+        if(players[i] === player)
+            return i;
+    }
+
 }
 
 //Абстракция айтемов игры
