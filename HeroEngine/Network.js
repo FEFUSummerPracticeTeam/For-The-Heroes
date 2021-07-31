@@ -231,19 +231,16 @@ function addEventCallback(callback) {
 //Принимает: пакет Object с данными согласно описанию в Constants.js
 //Возвращает: void
 function makeEvent(data) {
-    try {
+    if(!isAiGame){
         let eventRef = database.ref('events/' + lobbyID + '/' + playerID).push();
-        data.eventKey = eventRef.key;
         eventRef.set(data);
-    } catch (e) {
-    } //мы оффлайн
-
+    }
 }
 
-//Чистит свои прошлые ивенты с сервера, должно выполняться по окончании хода
-//Принимает: void
+//Чистит прошлые ивенты с сервера для заданного игрока
+//Принимает: playerID - строка ID игрока, чьи ивенты должны быть почищены
 //Возвращает: void
-function cleanCachedEvents() {
+function cleanCachedEvents(playerID) {
     database.ref('events/' + lobbyID + '/' + playerID).remove();
 }
 

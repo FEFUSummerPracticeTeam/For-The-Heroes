@@ -20,6 +20,8 @@ export function launch(ctx) {
             var game_map = getGameMap();
             for (let i = 0; i < mapWidth; i++)
                 for (let j = 0; j < mapHeight; j++) {
+                    if(getCellType(gameMap[i][j].cellTypeID) === undefined)
+                        console.log(gameMap[i][j].cellTypeID)
                     ctx.create_object(this, {
                         position: ctx.vector2(game_map[i][j].x * 32 * MapScale, game_map[i][j].y * 32 * MapScale),
                         size: ctx.vector2(32 * MapScale, 32 * MapScale),
@@ -113,6 +115,10 @@ export function launch(ctx) {
                 }
             }, () => {
                 if (!isAiGame) {
+                    if (turn_tracker.turnCnt + 1 % players.length === current_player) {
+                        cleanCachedEvents(playerID);
+                    }
+                    waitingForSync = true;
                     sync();
                 } else {
                     turn_tracker.start();
@@ -183,10 +189,14 @@ export function launch(ctx) {
                                     getItem(itemId.next().value).useItem(players[current_player], {enemy_near, enemy})
                                     selectedItem = 0;
                                 }
-
                                 break;
-
-
+                        }
+                        if (players[current_player].cell.x !== x || players[current_player].cell.y !== y) {
+                            makeEvent({
+                                cmdID: commands.Movement,
+                                x: players[current_player].cell.x,
+                                y: players[current_player].cell.y
+                            });
                         }
                         ctx.view.move(players[current_player].fieldCoordinates);
                     }

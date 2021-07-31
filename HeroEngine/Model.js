@@ -32,16 +32,12 @@ function gameInitialize(gameCallback) {
     parseDecorations();
     parseMonsters();
     let lobbyPlayers = getLobbyPlayers();
-    if (shouldGenerateField()) {
+    if (shouldGenerateField())
         MapGenerator.generateGameMap();
-        sync(true);
-    }
-    updateSyncValue();
     //Если игроки уже есть значит мы уже их сделали при получении карты
     if (players.length === 0) {
         for (let i = 0; i < lobbyPlayers.length; i++) {
             players[i] = new Player(lobbyPlayers[i].name, false);
-            players[i].move(gameMap [randomRangeInt(0, mapWidth)][randomRangeInt(0, mapWidth)])
         }
     }
 
@@ -64,19 +60,36 @@ function gameInitialize(gameCallback) {
             isAiGame = true;
         }
     }
+    //Если позиции ещё не заданы нужно расставить игроков
+    if (players[0].cell === undefined)
+        for (const player of players) {
+            player.move(gameMap [randomRangeInt(0, mapWidth)][randomRangeInt(0, mapWidth)])
+        }
     //Отправка пакета если мы сервер
     if (isAiGame === false && shouldGenerateField()) {
         let _playerPos = [];
         for (const player of players) {
             _playerPos.push(player.cell);
         }
+        let serializedField = ''
+        for (let i = 0; i < mapWidth; i++) {
+            for (let j = 0; j < mapHeight; j++) {
+                let cell = gameMap[i][j];
+                serializedField += (`${cell.x}:${cell.y}:${cell.cellTypeID}:${cell.itemID !== undefined ? cell.itemID : ''}:${cell.decorID !== undefined ? cell.decorID : ''}:${cell.monsterID !== undefined ? cell.monsterID : ''}:`);
+            }
+        }
         makeEvent({
             cmdID: commands.Map,
-            gameMap: JSON.stringify(gameMap),
+            gameMap: serializedField,
             playerPos: JSON.stringify(_playerPos)
         });
+        sync(true);
     }
-    addEventCallback(gameCallback);
+    //Если мы не оффлайн, включаем синхронизации
+    if (!isAiGame) {
+        updateSyncValue();
+        addEventCallback(gameCallback);
+    }
 }
 
 class Player {
@@ -100,7 +113,7 @@ class Player {
         //this.agility = 1; //ловкость
         //this.fortune = 1;
         this.items = new Map(); //Map айтемов игрока, хранит количество по ключам объектов Item
-        this.cell = null; //объект Cell, на котором стоит данный игрок
+        this.cell = undefined; //объект Cell, на котором стоит данный игрок
         this.isAI = isAI; //Является ли этот игрок ботом
     }
 
@@ -197,7 +210,6 @@ class Player {
         if (cell.itemID !== undefined) {
             this.pickItem(cell.itemID)
         }
-
     }
 
 
@@ -464,6 +476,7 @@ class TurnTracker {
     finishTurn() {
         window.clearInterval(this.currentInterval)
         this.onTurnEndCallback(this.currentPlayerIndex);
+        this.currentPlayerIndex = -1;
     }
 }
 
@@ -594,7 +607,21 @@ function cmdHandler(playerIndex, ev) { //playerIndex - индекс игрока
     //TODO
     switch (ev.cmdID) {
         case commands.Map:
-            gameMap = JSON.parse(ev.gameMap);
+            let mapTemp = ev.gameMap.split(':');
+            for (let i = 0; i < mapTemp.length; i++)
+                mapTemp[i] = parseInt(mapTemp[i]);
+            let cnt = 0;
+            for (let i = 0; i < mapWidth; i++) {
+                gameMap[i] = [mapHeight]
+                for (let j = 0; j < mapHeight; j++) {
+                    gameMap[i][j] = new Cell(mapTemp[cnt], mapTemp[cnt + 1], mapTemp[cnt + 2]);
+                    gameMap[i][j].itemID = !isNaN(mapTemp[cnt + 3]) ? mapTemp[cnt + 3] : undefined;
+                    gameMap[i][j].decorID = !isNaN(mapTemp[cnt + 4]) ? mapTemp[cnt + 4] : undefined;
+                    gameMap[i][j].monsterID = !isNaN(mapTemp[cnt + 5]) ? mapTemp[cnt + 5] : undefined;
+                    cnt += 6;
+                }
+            }
+
             let pos = JSON.parse(ev.playerPos);
             for (let i = 0; i < lobbyPlayers.length; i++) {
                 players[i] = new Player(lobbyPlayers[i].name, false);
@@ -608,6 +635,8 @@ function cmdHandler(playerIndex, ev) { //playerIndex - индекс игрока
         case commands.Item:
             break;
         case commands.Movement:
+            if (gameMap.length === 0) break;
+            players[playerIndex].move(gameMap[ev.x][ev.y]);
             break;
         case commands.Action:
             break;
