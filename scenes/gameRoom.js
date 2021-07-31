@@ -28,7 +28,6 @@ export function launch(ctx) {
                                     },
                                     (p) => {
                                         if (!p.isDying && p.IsInView()) {
-                                            console.log(p.position)
                                             switch (pack.direction) {
                                                 case 0:
                                                     p.move(ctx.vector2(0, -10));
@@ -43,17 +42,17 @@ export function launch(ctx) {
                                                     p.move(ctx.vector2(-10, 0));
                                                     break
                                             }
-                                            for (let i = 0; i <players_on_field.length ; i++) {
-                                                if (players_on_field[i].isCollision(p) && pack.player!==players[i]){
+                                            for (let i = 0; i < players_on_field.length; i++) {
+                                                if (players_on_field[i].isCollision(p) && pack.player !== players[i]) {
                                                     players[i].getDamage(pack.player.power);
                                                     p.destroy();
                                                 }
                                             }
-                                            for (let i = 0; i <mapWidth-1 ; i++) {
-                                                for (let j = 0; j <mapHeight-1 ; j++) {
-                                                    if(gameMap[i][j].monsterID!==undefined)
-                                                        if(monsters_on_field[i.toString() + j].isCollision(p)){
-                                                            gameMap[i][j].monster.getDamage(pack.player.power,pack.player,magic_attack)
+                                            for (let i = 0; i < mapWidth - 1; i++) {
+                                                for (let j = 0; j < mapHeight - 1; j++) {
+                                                    if (gameMap[i][j].monsterID !== undefined)
+                                                        if (monsters_on_field[i.toString() + j].isCollision(p)) {
+                                                            gameMap[i][j].monster.getDamage(pack.player.power, pack.player, true);
                                                             p.destroy();
                                                         }
                                                 }
@@ -123,42 +122,42 @@ export function launch(ctx) {
 
                     },
                     (p) => {
-                    if(!p.isDying) {
-                        ctx.get_layer('text').draw_text({
-                            text: players[i].name,
-                            x: p.position.x + (32 / 2) * MapScale,
-                            y: p.position.y - 12 * MapScale,
-                            size: 15,
-                            color: "black",
-                            alignment: 'center'
-                        })
-                        ctx.get_layer('text').draw_object({
-                            x: p.position.x,
-                            y: p.position.y + 5 * MapScale,
-                            height: 5,
-                            width: (players[i].health) / 4,
-                            color: "red",
-                            anchor: true
-                        })
-                        ctx.get_layer('text').draw_object({
-                            x: p.position.x,
-                            y: p.position.y + 10 * MapScale,
-                            height: 5,
-                            width: (players[i].mana) / 4,
-                            color: "blue",
-                            anchor: true
-                        })
-                        if (players[i].cell.itemID !== undefined) {
+                        if (!p.isDying) {
+                            ctx.get_layer('text').draw_text({
+                                text: players[i].name,
+                                x: p.position.x + (32 / 2) * MapScale,
+                                y: p.position.y - 12 * MapScale,
+                                size: 15,
+                                color: "black",
+                                alignment: 'center'
+                            })
+                            ctx.get_layer('text').draw_object({
+                                x: p.position.x,
+                                y: p.position.y + 5 * MapScale,
+                                height: 5,
+                                width: (players[i].health) / 4,
+                                color: "red",
+                                anchor: true
+                            })
+                            ctx.get_layer('text').draw_object({
+                                x: p.position.x,
+                                y: p.position.y + 10 * MapScale,
+                                height: 5,
+                                width: (players[i].mana) / 4,
+                                color: "blue",
+                                anchor: true
+                            })
+                            if (players[i].cell.itemID !== undefined) {
 
-                            players[i].cell.itemID = undefined;
-                            objects_on_field[players[i].cell.x.toString() + players[i].cell.y].destroy();
+                                players[i].cell.itemID = undefined;
+                                objects_on_field[players[i].cell.x.toString() + players[i].cell.y].destroy();
+                            }
+                            if (players[i].health <= 0) {
+                                players[i].isdead = true
+                                p.destroy();
+                                turn_tracker.finishTurn();
+                            }
                         }
-                        if (players[i].health <= 0) {
-                            players[i].isdead = true
-                            p.destroy();
-                            turn_tracker.finishTurn();
-                        }
-                    }
 
 
                     }
@@ -213,6 +212,11 @@ export function launch(ctx) {
                     p.position = ctx.vector2(ctx.view.position.x + ctx.size.x / 2, ctx.view.position.y + ctx.size.y / 10);
                 }
             )
+            let fireballFunc = (direction) => {
+                let params = {current_player, direction: direction};
+                getItem('4').useItem(players[current_player], params);
+                makeEvent({cmdID: commands.Item, itemID: '4', p: JSON.stringify(params)})
+            };
             ctx.view.move(players[current_player].fieldCoordinates, true);
             window.addEventListener('keyup', function (e) {
                     if (current_player === turn_tracker.currentPlayerIndex) {
@@ -235,12 +239,9 @@ export function launch(ctx) {
                                 if (x > 0)
                                     players[current_player].move(game_map[x - 1][y]);
                                 break;
-                            case 'KeyI':
-                                show_inventory = !show_inventory;
-                                break;
                             case 'ArrowUp':
                                 if (direction[0]) {
-                                    getItem('4').useItem(players[current_player], {current_player, direction: 0})
+                                    fireballFunc(0);
                                     direction[0] = false;
                                 } else {
                                     if (selectedItem !== 0)
@@ -249,13 +250,13 @@ export function launch(ctx) {
                                 break;
                             case 'ArrowRight':
                                 if (direction[0]) {
-                                    getItem('4').useItem(players[current_player], {current_player, direction: 1})
+                                    fireballFunc(1);
                                     direction[0] = false;
                                 }
                                 break;
                             case 'ArrowDown':
                                 if (direction[0]) {
-                                    getItem('4').useItem(players[current_player], {current_player, direction: 2})
+                                    fireballFunc(2);
                                     direction[0] = false;
                                 } else {
                                     if (selectedItem < players[current_player].items.size - 1)
@@ -264,7 +265,7 @@ export function launch(ctx) {
                                 break;
                             case 'ArrowLeft':
                                 if (direction[0]) {
-                                    getItem('4').useItem(players[current_player], {current_player, direction: 3})
+                                    fireballFunc(3);
                                     direction[0] = false;
                                 }
                                 break;
@@ -277,11 +278,14 @@ export function launch(ctx) {
                                     if (!((item.type === 'Magic') && (item.name === "Файрбол"))) {
                                         item.useItem(players[current_player], {current_player})
                                         selectedItem = 0;
-                                        makeEvent({cmdID: commands.Item, itemID: item.ID, p: JSON.stringify({current_player})});
-                                    }
-                                    else direction[0] = true;
+                                        makeEvent({
+                                            cmdID: commands.Item,
+                                            itemID: item.ID,
+                                            p: JSON.stringify({current_player})
+                                        });
+                                    } else direction[0] = true;
                                 }
-                            break;
+                                break;
                         }
                         if (players[current_player].cell.x !== x || players[current_player].cell.y !== y) {
                             makeEvent({
@@ -291,6 +295,9 @@ export function launch(ctx) {
                             });
                         }
                         ctx.view.move(players[current_player].fieldCoordinates);
+                    }
+                    if (e.code === 'KeyI') {
+                        show_inventory = !show_inventory;
                     }
                 }
             );

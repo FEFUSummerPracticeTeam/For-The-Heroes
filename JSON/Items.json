@@ -46,6 +46,6 @@
     "name": "Создание оружия",
     "type": "Magic",
     "value": "50",
-    "sprite": ""
+    "sprite": "assets/sprites/item_scroll.png"
   }
 ]

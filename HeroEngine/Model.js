@@ -297,9 +297,9 @@ class Monster {
         return true;
     }
 
-    getDamage(damage, player,magic_attack=false) {
+    getDamage(damage, player, magic_attack = false) {
         this.health -= damage;
-        if(!magic_attack)
+        if (!magic_attack)
             this.hitPlayer(player); //пока что монстр просто атакует в ответ, естественно есть более интересные варианты
         this.isDead(player);
     }
@@ -368,8 +368,8 @@ function doAITurn(player) {
             if (t !== -1)
                 getItem(i).useItem(player)
         }
-                getItem('1').useItem(players[current_player],{current_player})
-                break;
+        getItem('1').useItem(players[current_player], {current_player})
+        break;
 
 
     }
@@ -463,7 +463,12 @@ class Item {
                         player.regeneration();
                         break;
                     case "Файрбол":
-                        callListeners(p.current_player, {cmdID: commands.Item, itemID: 4, direction: p.direction,player:player})
+                        callListeners(p.current_player, {
+                            cmdID: commands.Item,
+                            itemID: 4,
+                            direction: p.direction,
+                            player: player
+                        })
                         break;
                     case "Создание оружия": //создает случайное оружие
                         let randomWeaponsList = itemTypeList.filter(item => item.type === "Weapon");
@@ -652,6 +657,7 @@ function getItem(ID) {
 //(private) Интерпретатор команд с firebase
 function cmdHandler(playerIndex, ev) { //playerIndex - индекс игрока в массиве игроков
     //TODO
+    if (playerIndex === getCurrentPlayerIndex()) return;
     switch (ev.cmdID) {
         case commands.Map:
             let mapTemp = ev.gameMap.split(':');
@@ -683,6 +689,7 @@ function cmdHandler(playerIndex, ev) { //playerIndex - индекс игрока
         case commands.TurnEnd:
             break;
         case commands.Item:
+            if(ev.p === undefined) return;
             getItem(ev.itemID).useItem(players[playerIndex], JSON.parse(ev.p));
             break;
         case commands.Movement:
