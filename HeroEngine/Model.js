@@ -526,7 +526,7 @@ class TurnTracker {
         this.currentPlayerIndex = -1;
         this.onTurnStartCallback = onTurnStartCallback;
         this.onTurnEndCallback = onTurnEndCallback;
-        this.timePerTurn = 6 / players.length;
+        this.timePerTurn = 3;
     }
 
     start() {
