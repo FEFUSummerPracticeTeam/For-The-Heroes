@@ -473,8 +473,9 @@ class TurnTracker {
 
     finishTurn() {
         window.clearInterval(this.currentInterval)
-        this.onTurnEndCallback(this.currentPlayerIndex);
+        let temp = this.currentPlayerIndex;
         this.currentPlayerIndex = -1;
+        this.onTurnEndCallback(temp);
     }
 }
 

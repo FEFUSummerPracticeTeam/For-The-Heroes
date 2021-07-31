@@ -75,11 +75,11 @@ export function launch(ctx) {
                     (p) => {
                         ctx.get_layer('text').draw_text({
                             text: players[i].name,
-                            x: p.position.x,
+                            x: p.position.x + (32 / 2) * MapScale,
                             y: p.position.y - 12 * MapScale,
                             size: 15,
                             color: "black",
-                            anchor: true
+                            alignment: 'center'
                         })
                         ctx.get_layer('text').draw_object({
                             x: p.position.x,
@@ -135,9 +135,26 @@ export function launch(ctx) {
                 },
                 (p) => {
                     p.text = waitingForSync ? 'Игроков готово: ' + syncCounter % players.length : turn_tracker.timeLeft;
-                    p.opacity += p.death_speed
+                    p.opacity += p.death_speed;
                     if ((p.opacity < 0.1) || (p.opacity > 0.96)) p.death_speed *= (-1);
-                    p.position = ctx.vector2(ctx.view.position.x + ctx.size.x / 2, ctx.view.position.y + ctx.size.y / 20)
+                    p.position = ctx.vector2(ctx.view.position.x + ctx.size.x / 2, ctx.view.position.y + ctx.size.y / 20);
+                }
+            )
+            ctx.create_object(this, {
+                    text: '',
+                    size: 30,
+                    position: ctx.vector2(ctx.view.position.x + 500, ctx.view.position.y + 500),
+                    layer: "text",
+                    color: "black",
+                    death_speed: -0.03,
+                    alignment: 'center',
+                    opacity: 0.95,
+                },
+                (p) => {
+                    p.text = waitingForSync || turn_tracker.currentPlayerIndex ? 'Ожидание игроков... ' : (current_player === turn_tracker.currentPlayerIndex ? 'Сейчас ВАШ ход!' : 'Сейчас ход ' + lobbyPlayers[turn_tracker.currentPlayerIndex].name);
+                    p.opacity += p.death_speed;
+                    if ((p.opacity < 0.1) || (p.opacity > 0.96)) p.death_speed *= (-1);
+                    p.position = ctx.vector2(ctx.view.position.x + ctx.size.x / 2, ctx.view.position.y + ctx.size.y / 10);
                 }
             )
             ctx.view.move(players[current_player].fieldCoordinates, true);
@@ -236,7 +253,6 @@ export function launch(ctx) {
                     yOff += 30
                     y++;
                 }
-                ;
 
             }
         }
