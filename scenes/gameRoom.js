@@ -10,37 +10,42 @@ export function launch(ctx) {
             var players_on_field = [];
             selectedItem = 0;
             let offset = 0;
-            gameInitialize();
+            gameInitialize((playerIndex, pack) => {
+                switch (pack.cmdID) {
+                    case commands.Map:
+
+                }
+            });
             current_player = getCurrentPlayerIndex();
             var game_map = getGameMap();
             for (let i = 0; i < mapWidth; i++)
                 for (let j = 0; j < mapHeight; j++) {
                     ctx.create_object(this, {
-                        position: ctx.vector2(game_map[[i, j]].x * 32 * MapScale, game_map[[i, j]].y * 32 * MapScale),
+                        position: ctx.vector2(game_map[i][j].x * 32 * MapScale, game_map[i][j].y * 32 * MapScale),
                         size: ctx.vector2(32 * MapScale, 32 * MapScale),
-                        sprite: getCellType(gameMap[[i, j]].cellTypeID).sprite,
+                        sprite: getCellType(gameMap[i][j].cellTypeID).sprite,
                         layer: "cells",
                         color: "black"
                     });
-                    if (gameMap[[i, j]].decorID !== undefined)
+                    if (gameMap[i][j].decorID !== undefined)
                         ctx.create_object(this, {
-                            position: ctx.vector2(game_map[[i, j]].x * 32 * MapScale, game_map[[i, j]].y * 32 * MapScale),
+                            position: ctx.vector2(game_map[i][j].x * 32 * MapScale, game_map[i][j].y * 32 * MapScale),
                             size: ctx.vector2(32 * MapScale, 32 * MapScale),
-                            sprite: getDecoration(gameMap[[i, j]].decorID).sprite,
+                            sprite: getDecoration(gameMap[i][j].decorID).sprite,
                             layer: "decorations",
                         });
-                    if (gameMap[[i, j]].itemID !== undefined)
+                    if (gameMap[i][j].itemID !== undefined)
                         objects_on_field[i.toString() + j] = ctx.create_object(this, {
-                            position: ctx.vector2(game_map[[i, j]].x * 32 * MapScale, game_map[[i, j]].y * 32 * MapScale),
+                            position: ctx.vector2(game_map[i][j].x * 32 * MapScale, game_map[i][j].y * 32 * MapScale),
                             size: ctx.vector2(32 * MapScale, 32 * MapScale),
-                            sprite: getItem(gameMap[[i, j]].itemID).sprite,
+                            sprite: getItem(gameMap[i][j].itemID).sprite,
                             layer: "decorations",
                         });
-                    if (gameMap[[i, j]].monsterID !== undefined)
+                    if (gameMap[i][j].monsterID !== undefined)
                         objects_on_field[i.toString() + j] = ctx.create_object(this, {
-                                position: ctx.vector2(game_map[[i, j]].x * 32 * MapScale, game_map[[i, j]].y * 32 * MapScale),
+                                position: ctx.vector2(game_map[i][j].x * 32 * MapScale, game_map[i][j].y * 32 * MapScale),
                                 size: ctx.vector2(24 * MapScale, 24 * MapScale),
-                                sprite: getMonster(gameMap[[i, j]].monsterID).sprite,
+                                sprite: getMonster(gameMap[i][j].monsterID).sprite,
                                 layer: "decorations",
                             },
                             (p) => {
@@ -48,11 +53,11 @@ export function launch(ctx) {
                                     x: p.position.x,
                                     y: p.position.y - 5 * MapScale,
                                     height: 5,
-                                    width: gameMap[[i, j]].monster.health / 10,
+                                    width: gameMap[i][j].monster.health / 10,
                                     color: "red",
                                     anchor: true
                                 })
-                                if (gameMap[[i, j]].monster.health <= 0)
+                                if (gameMap[i][j].monster.health <= 0)
                                     objects_on_field[i.toString() + j].destroy();
                             }
                         );
@@ -113,10 +118,10 @@ export function launch(ctx) {
                     turn_tracker.start();
                 }
             });
-           ctx.create_object(this, {
+            ctx.create_object(this, {
                     text: '',
                     size: 50,
-                    position: ctx.vector2(ctx.view.position.x+500, ctx.view.position.y+500),
+                    position: ctx.vector2(ctx.view.position.x + 500, ctx.view.position.y + 500),
                     layer: "text",
                     color: "black",
                     death_speed: -0.03,
@@ -126,10 +131,10 @@ export function launch(ctx) {
                     p.text = waitingForSync ? 'Игроков готово: ' + syncCounter % players.length : turn_tracker.timeLeft;
                     p.opacity += p.death_speed
                     if ((p.opacity < 0.1) || (p.opacity > 0.96)) p.death_speed *= (-1);
-                    p.position= ctx.vector2(ctx.view.position.x+ctx.size.x/2, ctx.view.position.y+ctx.size.y/20)
+                    p.position = ctx.vector2(ctx.view.position.x + ctx.size.x / 2, ctx.view.position.y + ctx.size.y / 20)
                 }
             )
-            ctx.view.move(players[current_player].fieldCoordinates,true);
+            ctx.view.move(players[current_player].fieldCoordinates, true);
             window.addEventListener('keyup', function (e) {
                     if (current_player === turn_tracker.currentPlayerIndex) {
                         let x = players[current_player].cell.x;
@@ -137,19 +142,19 @@ export function launch(ctx) {
                         switch (e.code) {
                             case 'KeyW':
                                 if (y > 0)
-                                    players[current_player].move(game_map[[x, --y]]);
+                                    players[current_player].move(game_map[x][--y]);
                                 break;
                             case 'KeyS':
                                 if (y < mapHeight - 1)
-                                    players[current_player].move(game_map[[x, ++y]]);
+                                    players[current_player].move(game_map[x][++y]);
                                 break;
                             case 'KeyD':
                                 if (x < mapWidth - 1)
-                                    players[current_player].move(game_map[[++x, y]]);
+                                    players[current_player].move(game_map[++x][y]);
                                 break;
                             case 'KeyA':
                                 if (x > 0)
-                                    players[current_player].move(game_map[[--x, y]]);
+                                    players[current_player].move(game_map[--x][y]);
                                 break;
                             case 'KeyI':
                                 show_inventory = !show_inventory;
@@ -182,48 +187,46 @@ export function launch(ctx) {
                                 break;
 
 
-
-
+                        }
+                        ctx.view.move(players[current_player].fieldCoordinates);
+                    }
                 }
-                ctx.view.move(players[current_player].fieldCoordinates);
-            }
-        }
-    );
+            );
             if (!isAiGame) sync();
-};
-this.update = function () {
-    if (waitingForSync) {
-        if (syncCounter / players.length === turn_tracker.turnCnt + 2 || isAiGame) {
-            waitingForSync = false;
-            turn_tracker.start();
-        }
-    }
-};
-this.draw = function () {
-    if (show_inventory) {
-        ctx.get_layer('window').draw_object({
-            x:  ctx.view.position.x,
-            y: ctx.view.position.y,
-            width: 200,
-            height: 300,
-            file: "assets/sprites/background_inventory.png"
-        })
-        let items = players[current_player].items.entries();
-        let yOff = ctx.view.position.y+50;
-        let y = 0
-        for (let i of items) {
-            let item_name = itemTypeList[i[0]].name
-            ctx.get_layer('window_text').draw_text({
-                x: ctx.view.position.x+10 + 5,
-                y: yOff,
-                size: 15,
-                color: y === selectedItem ? 'red' : 'white',
-                text: item_name + " x" + i[1],
-            });
-            yOff += 30
-            y++;
-        }
-        ;
+        };
+        this.update = function () {
+            if (waitingForSync) {
+                if (syncCounter / players.length === turn_tracker.turnCnt + 2 || isAiGame) {
+                    waitingForSync = false;
+                    turn_tracker.start();
+                }
+            }
+        };
+        this.draw = function () {
+            if (show_inventory) {
+                ctx.get_layer('window').draw_object({
+                    x: ctx.view.position.x,
+                    y: ctx.view.position.y,
+                    width: 200,
+                    height: 300,
+                    file: "assets/sprites/background_inventory.png"
+                })
+                let items = players[current_player].items.entries();
+                let yOff = ctx.view.position.y + 50;
+                let y = 0
+                for (let i of items) {
+                    let item_name = itemTypeList[i[0]].name
+                    ctx.get_layer('window_text').draw_text({
+                        x: ctx.view.position.x + 10 + 5,
+                        y: yOff,
+                        size: 15,
+                        color: y === selectedItem ? 'red' : 'white',
+                        text: item_name + " x" + i[1],
+                    });
+                    yOff += 30
+                    y++;
+                }
+                ;
 
             }
         }

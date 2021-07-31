@@ -5,7 +5,7 @@ export function launch(ctx) {
         let joinedLobbyState;
         this.init = (args) => {
             offset = 0;
-            selectedLobby = 0;
+            selectedLobby = joinedLobbyState ? getCurrentPlayerIndex() : 0;
             joinedLobbyState = args !== undefined;
             if (!joinedLobbyState) networkInit();
             ctx.create_object(this, {
@@ -62,7 +62,11 @@ export function launch(ctx) {
                             case 'Enter':
                                 if (!joinedLobbyState) {
                                     let once = true;
-                                    joinLobby(playerName, lobbyList[selectedLobby + offset].id, undefined, () => {
+                                    joinLobby(playerName, lobbyList[selectedLobby + offset].id, (i, cmd) => {
+                                        if (cmd.cmdID === commands.Map) {
+                                            ctx.set_scene('gameRoom');
+                                        }
+                                    }, () => {
                                         if (once) {
                                             once = false;
                                             ctx.set_scene('lobbySelectRoom', 'connected');

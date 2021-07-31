@@ -14,6 +14,8 @@ let lobbyPlayers;
 let eventCallbacks = [];
 //Значение синхронизации
 let syncCounter = 0;
+//Флажок для одноразовой инцииализации коллбеков
+let isCallbackInit = false;
 
 //Инициализация network-стека движка, должна выполняться сразу перед взаимодействием с онлайн частью
 //Принимает:
@@ -48,14 +50,15 @@ function createLobby(lobbyName, onLobbyCreatedListener) {
 //Принимает: имя игрока, ID лобби, коллбек на команды с сервера(помимо коллбека в Model),
 // (опц) коллбек изменения кол-ва игроков в лобби, принимающий массив игроков в лобби{id;name}
 //Возвращает: string - ID этого игрока
-function joinLobby(playerName, lobbyID, onNewCommandListener, onNewConnectionListener) {
-    let playerRef = database.ref('players/' + lobbyID).push();
+function joinLobby(playerName, lobbyToJoin, onNewCommandListener, onNewConnectionListener) {
+    let playerRef = database.ref('players/' + lobbyToJoin).push();
     playerID = playerRef.key;
     playerRef.set({name: playerName, id: playerID});
-    onNewCommandListener !== undefined ? addEventCallback(onNewCommandListener) : null;
     addEventCallback(cmdHandler);
+    onNewCommandListener !== undefined ? addEventCallback(onNewCommandListener) : null;
+    lobbyID = lobbyToJoin;
     bindOfflineAction();
-    database.ref('players/' + lobbyID).on('value', (snapshot) => {
+    database.ref('players/' + lobbyToJoin).on('value', (snapshot) => {
         let response = snapshot.val();
         lobbyPlayers = response === null ? [] : Object.values(response);
         lobbyPlayers.sort((p1, p2) => {
@@ -66,6 +69,10 @@ function joinLobby(playerName, lobbyID, onNewCommandListener, onNewConnectionLis
                 joinedLobby = lobby;
                 break;
             }
+        }
+        if(!isCallbackInit){
+            initEventCallback();
+            isCallbackInit = true;
         }
         if (onNewConnectionListener !== undefined) {
             onNewConnectionListener(getLobbyPlayers());
@@ -92,6 +99,9 @@ function refreshLobbies(onRefreshDoneListener) {
 //Принимает: void
 //Возвращает: void
 function leaveLobby() {
+    isCallbackInit = false;
+    joinedLobby = undefined;
+    lobbyID = undefined;
     if (lobbyPlayers.length === 1) database.ref('lobbies/' + lobbyID).remove();
     database.ref('players/' + lobbyID + '/' + playerID).remove();
 }
@@ -136,7 +146,7 @@ function shouldGenerateField() {
 //Принимает: void
 //Возвращает: number - номер текущего игрока
 function getCurrentPlayerIndex() {
-    if(isDebug)return 0
+    if (isDebug) return 0
     for (let i = 0; i < getLobbyPlayers().length; i++) {
         if (lobbyPlayers[i].id === playerID) return i;
     }
@@ -175,12 +185,12 @@ function getLobbyPlayers() {
 //Принимает: void
 //Возвращает: void
 function initEventCallback() {
-    for (const prop in lobbyPlayers) {
+    for (const prop of lobbyPlayers) {
         //проверка на то, что мы не итерируем поля прототипов и не делаем коллбек на этого игрока
-        if (!lobbyPlayers.hasOwnProperty(prop) || prop.localeCompare(playerID) === 0) continue;
-        database.ref('events/' + lobbyID + '/' + prop).on('child_added', (data) => {
+        if (prop.id === playerID) continue;
+        database.ref('events/' + lobbyID + '/' + prop.id).on('child_added', (data) => {
             for (let i = 0; i < lobbyPlayers.length; i++) {
-                if (lobbyPlayers[i] === prop) {
+                if (lobbyPlayers[i].id === prop.id) {
                     callListeners(i, data.val());
                 }
             }
@@ -188,13 +198,13 @@ function initEventCallback() {
     }
 }
 
-function sync(establishing){
+function sync(establishing) {
     let updates = {};
     updates[`events/${lobbyID}/sync`] = establishing ? 0 : firebase.database.ServerValue.increment(1);
     firebase.database().ref().update(updates);
 }
 
-function updateSyncValue(){
+function updateSyncValue() {
     database.ref('events/' + lobbyID + '/' + 'sync').on('child_changed', (data) => {
         syncCounter = data.val();
     });

@@ -31,26 +31,22 @@ function gameInitialize(gameCallback) {
     parseCells();
     parseDecorations();
     parseMonsters();
+    let lobbyPlayers = getLobbyPlayers();
     if (shouldGenerateField()) {
         MapGenerator.generateGameMap();
-        makeEvent({
-            cmdID: commands.Map,
-            gameMap: getGameMap()
-        });
         sync(true);
     }
     updateSyncValue();
-    let lobbyPlayers = getLobbyPlayers();
     for (let i = 0; i < lobbyPlayers.length; i++) {
         players[i] = new Player(lobbyPlayers[i].name, false);
     }
     for (let i = 0; i < mapWidth; i++) {
         for (let j = 0; j < mapHeight; j++) {
-            if (gameMap[[i, j]].monsterID !== undefined) {
-                gameMap[[i, j]].monster = {};
+            if (gameMap[i][j].monsterID !== undefined) {
+                gameMap[i][j].monster = {};
 
-                Object.assign(gameMap[[i, j]].monster, getMonster(gameMap[[i, j]].monsterID));
-                Object.setPrototypeOf(gameMap[[i, j]].monster,Monster.prototype);
+                Object.assign(gameMap[i][j].monster, getMonster(gameMap[i][j].monsterID));
+                Object.setPrototypeOf(gameMap[i][j].monster, Monster.prototype);
 
             }
         }
@@ -61,8 +57,18 @@ function gameInitialize(gameCallback) {
             isAiGame = true;
         }
     }
-    for (let i of players) i.move(gameMap [/*[randomRangeInt(0, mapWidth), randomRangeInt(0, mapWidth) ]*/[40,24]]);
-
+    for (let i of players) i.move(gameMap [randomRangeInt(0, mapWidth)][randomRangeInt(0, mapWidth)]);
+    if (isAiGame === false && shouldGenerateField()) {
+        let _playerPos = [];
+        for (const player of players) {
+            _playerPos.push(player.cell);
+        }
+        makeEvent({
+            cmdID: commands.Map,
+            gameMap: JSON.stringify(gameMap),
+            playerPos: JSON.stringify(_playerPos)
+        });
+    }
     addEventCallback(gameCallback);
 }
 
@@ -181,7 +187,7 @@ class Player {
         this.cell = cell;
         this.fieldCoordinates.x = this.cell.x * 32 * MapScale;
         this.fieldCoordinates.y = this.cell.y * 32 * MapScale;
-        if(cell.itemID !== undefined){
+        if (cell.itemID !== undefined) {
             this.pickItem(cell.itemID)
         }
 
@@ -297,17 +303,17 @@ function doAITurn(player) {
                 let x = u.x + mods[i][0];
                 let y = u.y + mods[i][1];
                 if (inBounds(x, y, mapWidth, mapHeight)) {
-                    if (visited.get(gameMap[[x, y]]) === undefined) {
-                        visited.set(gameMap[[x, y]], true);
-                        queue.enqueue(gameMap[[x, y]]);
-                        if (gameMap[[x, y]].itemID !== undefined) {
-                            targetCell = gameMap[[x, y]];
+                    if (visited.get(gameMap[x][y]) === undefined) {
+                        visited.set(gameMap[x][y], true);
+                        queue.enqueue(gameMap[x][y]);
+                        if (gameMap[x][y].itemID !== undefined) {
+                            targetCell = gameMap[x][y];
                             break loop;
                         } else {
                             for (const p of players) {
-                                if(p === player) continue;
-                                if (p.cell === gameMap[[x, y]]) {
-                                    targetCell = gameMap[[x, y]];
+                                if (p === player) continue;
+                                if (p.cell === gameMap[x][y]) {
+                                    targetCell = gameMap[x][y];
                                     break loop;
                                 }
                             }
@@ -320,9 +326,9 @@ function doAITurn(player) {
     for (let i = 0; i < player.speed; i++) {
         let cell = player.cell;
         if (cell.x !== targetCell.x) {
-            player.move(gameMap[[cell.x + (targetCell.x < cell.x ? -1 : 1), cell.y]]);
+            player.move(gameMap[cell.x + (targetCell.x < cell.x ? -1 : 1)][cell.y]);
         } else if (cell.y !== targetCell.y) {
-            player.move(gameMap[[cell.x, cell.y + (targetCell.y < cell.y ? -1 : 1)]]);
+            player.move(gameMap[cell.x][cell.y + (targetCell.y < cell.y ? -1 : 1)]);
         }
     }
     console.log("ИИ сдвинулся на " + player.cell.x + " " + player.cell.y);
@@ -350,24 +356,24 @@ class Item {
     }
 
     //При его использовании мы делаем что-то в соответствии с его типом
-    useItem(player,p) {
+    useItem(player, p) {
         switch (this.type) {
             case ItemTypes.Armour:
                 player.setArmour(this.value);
                 break;
             case ItemTypes.Weapon:
-                if(p.enemy_near) {
+                if (p.enemy_near) {
                     p.enemy.getDamage(player.power)
                     return;
                 }
                 let x = player.cell.x;
                 let y = player.cell.y;
-                let mods = [[0,0],[0,1],[1,0],[1,1],[0,-1],[-1,0],[-1,-1],[1,-1],[-1,1]]
+                let mods = [[0, 0], [0, 1], [1, 0], [1, 1], [0, -1], [-1, 0], [-1, -1], [1, -1], [-1, 1]]
                 for (let i = 0; i < 9; i++) {
-                    if(inBounds(x+mods[i][0],y+mods[i][1],mapWidth,mapHeight)){
-                        let cel = gameMap[[x+mods[i][0],y+mods[i][1]]]
-                        if(cel.monsterID!==undefined){
-                            cel.monster.getDamage(player.power,player);
+                    if (inBounds(x + mods[i][0], y + mods[i][1], mapWidth, mapHeight)) {
+                        let cel = gameMap[x + mods[i][0]][y + mods[i][1]]
+                        if (cel.monsterID !== undefined) {
+                            cel.monster.getDamage(player.power, player);
                             return;
                         }
                     }
@@ -463,12 +469,13 @@ class MapGenerator {
         let heatMap = this.generateNoise(mapWidth, mapHeight, mapNoiseScale, heatWaves, sampleOffset);
 
         for (let x = 0; x < mapWidth; x++) {
+            gameMap[x] = []
             for (let y = 0; y < mapHeight; y++) {
-                gameMap[[x, y]] = new Cell(x, y, this.getBiomeID(heightMap[[x, y]], moistureMap[[x, y]], heatMap[[x, y]]));
+                gameMap[x][y] = new Cell(x, y, this.getBiomeID(heightMap[[x, y]], moistureMap[[x, y]], heatMap[[x, y]]));
             }
         }
         for (let i = 0; i < decorCount; i++) {
-            let cell = gameMap[[randomRangeInt(0, mapWidth), randomRangeInt(0, mapHeight)]];
+            let cell = gameMap[randomRangeInt(0, mapWidth)][randomRangeInt(0, mapHeight)];
             let cellType = getCellType(cell.cellTypeID);
             cell.decorID = cellType.decor[randomRangeInt(0, cellType.decor.length)];
         }
@@ -476,16 +483,16 @@ class MapGenerator {
         for (let i = 0; i < itemCount; i++) {
             let cell;
             while (true) {
-                cell = gameMap[[randomRangeInt(0, mapWidth), randomRangeInt(0, mapHeight)]];
+                cell = gameMap[randomRangeInt(0, mapWidth)][randomRangeInt(0, mapHeight)];
                 if (cell.decorID === undefined) break;
             }
-            cell = gameMap[[randomRangeInt(0, mapWidth), randomRangeInt(0, mapHeight)]];
+            cell = gameMap[randomRangeInt(0, mapWidth)][randomRangeInt(0, mapHeight)];
             cell.itemID = i < itemTypeList.length ? i : itemTypeList[randomRangeInt(0, itemTypeList.length)].ID;
         }
         for (let i = 0; i < monsterCount; i++) {
             let cell;
             while (true) {
-                cell = gameMap[[randomRangeInt(0, mapWidth), randomRangeInt(0, mapHeight)]];
+                cell = gameMap[randomRangeInt(0, mapWidth)][randomRangeInt(0, mapHeight)];
                 if (cell.itemID === undefined && cell.decorID === undefined) break;
             }
             cell.monsterID = i < monsterTypeList.length ? i : monsterTypeList[randomRangeInt(0, monsterTypeList.length)].ID;
@@ -580,7 +587,11 @@ function cmdHandler(Player, ev) { //Player - индекс игрока в мас
     //TODO
     switch (ev.cmdID) {
         case commands.Map:
-            gameMap = ev.gameMap;
+            gameMap = JSON.parse(ev.gameMap);
+            let pos = JSON.parse(ev.playerPos)
+            for (let i = 0; i < pos; i++) {
+                players[i].cell = ev.playerPos[i];
+            }
             break;
         case commands.Disconnected:
             break;
